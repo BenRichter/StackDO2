@@ -2,10 +2,57 @@
 <html lang="de">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="theme-color" content="#1d2327" />
+		<meta name="description" content="StackDO – nie wieder wählen, was als Nächstes kommt. Einfach machen." />
+		<link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
+		<link rel="apple-touch-icon" href="%sveltekit.assets%/icon.svg" />
+		<style>
+			#splash {
+				position: fixed;
+				inset: 0;
+				z-index: 1000;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 14px;
+				background: #1d2327;
+				color: #f0f0f1;
+				font-family: system-ui, sans-serif;
+				transition: opacity 0.35s ease;
+			}
+			#splash.gone {
+				opacity: 0;
+				pointer-events: none;
+			}
+			#splash .logo {
+				font-size: 2.6rem;
+				font-weight: 900;
+				letter-spacing: -0.03em;
+			}
+			#splash .logo span {
+				background: linear-gradient(135deg, #ffb347, #ff7a3d 55%, #f0533a);
+				-webkit-background-clip: text;
+				background-clip: text;
+				color: transparent;
+			}
+			#splash .bars { display: flex; flex-direction: column; gap: 5px; width: 64px; }
+			#splash .bars i { display: block; height: 8px; border-radius: 2px; animation: drop 0.9s ease-out both; }
+			#splash .bars i:nth-child(1) { background: linear-gradient(135deg, #ffb347, #f0533a); animation-delay: 0.3s; height: 12px; }
+			#splash .bars i:nth-child(2) { background: #00a32a; animation-delay: 0.15s; }
+			#splash .bars i:nth-child(3) { background: #2271b1; }
+			#splash p { margin: 0; opacity: 0.6; font-size: 0.9rem; }
+			@keyframes drop { from { transform: translateY(-30px); opacity: 0; } }
+		</style>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
+		<div id="splash" aria-hidden="true">
+			<div class="bars"><i></i><i></i><i></i></div>
+			<div class="logo">Stack<span>DO</span></div>
+			<p>Nicht wählen. Machen.</p>
+		</div>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

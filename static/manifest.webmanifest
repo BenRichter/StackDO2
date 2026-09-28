@@ -1,0 +1,12 @@
+{
+	"name": "StackDO",
+	"short_name": "StackDO",
+	"description": "Nie wieder wählen, was als Nächstes kommt. Einfach machen.",
+	"start_url": "./",
+	"scope": "./",
+	"display": "standalone",
+	"background_color": "#f0f0f1",
+	"theme_color": "#1d2327",
+	"lang": "de",
+	"icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

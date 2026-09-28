@@ -1,308 +1,265 @@
 <script lang="ts">
-	import { taskStore } from '$lib/stores/tasks.svelte';
-	import TaskCard from '$lib/components/TaskCard.svelte';
-	import AddTaskForm from '$lib/components/AddTaskForm.svelte';
-	import LocationSelector from '$lib/components/LocationSelector.svelte';
+	import { app } from '$lib/stores/app.svelte';
+	import { ui, type Tab } from '$lib/stores/ui.svelte';
+	import Icon, { type IconName } from '$lib/components/Icon.svelte';
 	import AnimationCanvas from '$lib/components/AnimationCanvas.svelte';
-	import BatchView from '$lib/components/BatchView.svelte';
-	import StatsBar from '$lib/components/StatsBar.svelte';
+	import StackView from '$lib/components/views/StackView.svelte';
+	import DayView from '$lib/components/views/DayView.svelte';
+	import ThreadsView from '$lib/components/views/ThreadsView.svelte';
+	import StatsView from '$lib/components/views/StatsView.svelte';
+	import TaskSheet from '$lib/components/sheets/TaskSheet.svelte';
+	import PushSheet from '$lib/components/sheets/PushSheet.svelte';
+	import DoneSheet from '$lib/components/sheets/DoneSheet.svelte';
+	import ThreadSheet from '$lib/components/sheets/ThreadSheet.svelte';
+	import SettingsSheet from '$lib/components/sheets/SettingsSheet.svelte';
+	import { fly } from 'svelte/transition';
 
-	let showAddForm = $state(false);
-	let animating = $state(false);
-	let completingId = $state<string | null>(null);
-	let activeTab = $state<'stack' | 'projects' | 'categories' | 'tags'>('stack');
+	const TABS: { id: Tab; label: string; icon: IconName }[] = [
+		{ id: 'stack', label: 'Stapel', icon: 'stack' },
+		{ id: 'day', label: 'Tag', icon: 'clock' },
+		{ id: 'threads', label: 'Stränge', icon: 'threads' },
+		{ id: 'stats', label: 'Statistik', icon: 'chart' }
+	];
 
-	const scoredTasks = $derived(taskStore.scoredTasks);
+	let searchEl = $state<HTMLInputElement>();
 
-	function handleComplete(id: string) {
-		completingId = id;
-		animating = true;
+	function done(id: string) {
+		const task = app.tasks.find((t) => t.id === id);
+		app.complete(id);
+		if (app.settings.animations) ui.celebrate++;
+		// tutorial finished → retire its thread
+		if (task?.tutorial && !app.tasks.some((t) => t.tutorial && !t.completedAt)) {
+			app.updateThread('tutorial', { archived: true });
+			ui.notify('Tutorial durch. Ab jetzt: nicht wählen, machen.');
+		}
+		ui.open({ type: 'done', id });
 	}
 
-	function onAnimationDone() {
-		if (completingId) {
-			taskStore.completeTask(completingId);
-			completingId = null;
+	function toggleSearch() {
+		ui.searchOpen = !ui.searchOpen;
+		if (ui.searchOpen) {
+			ui.tab = 'stack';
+			queueMicrotask(() => searchEl?.focus());
+		} else app.search = '';
+	}
+
+	function onKey(e: KeyboardEvent) {
+		const target = e.target as HTMLElement;
+		if (ui.sheet || e.metaKey || e.ctrlKey || e.altKey || target.closest('input, textarea, select, [contenteditable]')) return;
+		const top = app.stack.ready[0];
+		if (e.key === 'n') {
+			e.preventDefault();
+			ui.open({ type: 'task' });
+		} else if (e.key === '/') {
+			e.preventDefault();
+			if (!ui.searchOpen) toggleSearch();
+			else searchEl?.focus();
+		} else if (e.key === ' ' && top && ui.tab === 'stack' && target.tagName !== 'BUTTON') {
+			e.preventDefault();
+			app.toggle(top.task.id);
+		} else if (e.key >= '1' && e.key <= '4') {
+			ui.tab = TABS[Number(e.key) - 1].id;
 		}
-		animating = false;
 	}
 </script>
 
+<svelte:window onkeydown={onKey} />
 <svelte:head>
-	<title>StackDO – Dein Smart Task Manager</title>
-	<meta name="description" content="Intelligenter Aufgabenplaner mit Smart Scoring" />
+	<title>{app.timer ? `▶ ${app.tasks.find((t) => t.id === app.timer?.taskId)?.title ?? ''} · ` : ''}StackDO</title>
 </svelte:head>
 
-<AnimationCanvas active={animating} onDone={onAnimationDone} />
+<AnimationCanvas trigger={ui.celebrate} />
 
-<div class="app">
-	<header class="app-header">
-		<div class="header-top">
-			<h1 class="app-title">Stack<span class="accent">DO</span></h1>
-			<span class="time-badge">
-				{new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
-			</span>
+<div class="app" class:sheet-open={!!ui.sheet}>
+	<header class="top">
+		<h1>Stack<span>DO</span></h1>
+		<div class="tools">
+			<button class="icon-btn" onclick={toggleSearch} aria-label="Suche" aria-pressed={ui.searchOpen}><Icon name="search" /></button>
+			<button class="icon-btn" onclick={() => ui.open({ type: 'settings' })} aria-label="Einstellungen"><Icon name="settings" /></button>
 		</div>
-		<LocationSelector />
 	</header>
 
-	<StatsBar />
+	{#if ui.searchOpen}
+		<div class="search" transition:fly={{ y: -8, duration: 150 }}>
+			<Icon name="search" size={16} />
+			<input bind:this={searchEl} bind:value={app.search} placeholder="Aufgaben, Notizen, #tags, Stränge …" aria-label="Suche" />
+			<button class="icon-btn" onclick={toggleSearch} aria-label="Suche schließen"><Icon name="x" size={16} /></button>
+		</div>
+	{/if}
 
-	<nav class="tab-bar">
-		<button class="tab" class:active={activeTab === 'stack'} onclick={() => activeTab = 'stack'}>
-			Stapel
-		</button>
-		<button class="tab" class:active={activeTab === 'projects'} onclick={() => activeTab = 'projects'}>
-			Projekte
-		</button>
-		<button class="tab" class:active={activeTab === 'categories'} onclick={() => activeTab = 'categories'}>
-			Kategorien
-		</button>
-		<button class="tab" class:active={activeTab === 'tags'} onclick={() => activeTab = 'tags'}>
-			Tags
-		</button>
-	</nav>
-
-	<main class="main-content">
-		{#if activeTab === 'stack'}
-			{#if scoredTasks.length === 0}
-				<div class="empty-state">
-					<div class="empty-icon">🎉</div>
-					<h2>Alles erledigt!</h2>
-					<p>Keine Aufgaben für deinen aktuellen Standort.</p>
-				</div>
-			{:else}
-				<div class="task-stack">
-					{#each scoredTasks as task, i (task.id)}
-						{@const isLast = i === scoredTasks.length - 1}
-						<div
-							class="stack-item"
-							class:completing={completingId === task.id}
-							style:--depth={scoredTasks.length - 1 - i}
-							style:z-index={i + 1}
-						>
-							<TaskCard
-								{task}
-								isCurrentTask={isLast}
-								index={i}
-								total={scoredTasks.length}
-								onComplete={handleComplete}
-							/>
-						</div>
-					{/each}
-				</div>
-			{/if}
-		{:else if activeTab === 'projects'}
-			<BatchView mode="projects" />
-		{:else if activeTab === 'categories'}
-			<BatchView mode="categories" />
+	<main>
+		{#if ui.tab === 'stack'}
+			<StackView onDone={done} />
+		{:else if ui.tab === 'day'}
+			<DayView />
+		{:else if ui.tab === 'threads'}
+			<ThreadsView />
 		{:else}
-			<BatchView mode="tags" />
+			<StatsView />
 		{/if}
 	</main>
-
-	<footer class="app-footer">
-		<button class="add-btn" onclick={() => showAddForm = true}>
-			<span class="add-icon">+</span>
-			<span class="add-label">Neue Aufgabe</span>
-		</button>
-	</footer>
-
-	{#if showAddForm}
-		<AddTaskForm onClose={() => showAddForm = false} />
-	{/if}
 </div>
 
+<nav class="nav" aria-label="Ansichten">
+	{#each TABS.slice(0, 2) as t (t.id)}
+		<button class:active={ui.tab === t.id} onclick={() => (ui.tab = t.id)} aria-current={ui.tab === t.id ? 'page' : undefined}>
+			<Icon name={t.icon} /><span>{t.label}</span>
+		</button>
+	{/each}
+	<button class="fab" onclick={() => ui.open({ type: 'task' })} aria-label="Neue Aufgabe (N)"><Icon name="plus" size={28} /></button>
+	{#each TABS.slice(2) as t (t.id)}
+		<button class:active={ui.tab === t.id} onclick={() => (ui.tab = t.id)} aria-current={ui.tab === t.id ? 'page' : undefined}>
+			<Icon name={t.icon} /><span>{t.label}</span>
+		</button>
+	{/each}
+</nav>
+
+{#if ui.sheet?.type === 'task'}
+	{#key ui.sheet.id ?? 'new'}
+		<TaskSheet id={ui.sheet.id} threadId={ui.sheet.threadId} />
+	{/key}
+{:else if ui.sheet?.type === 'push'}
+	<PushSheet id={ui.sheet.id} />
+{:else if ui.sheet?.type === 'done'}
+	<DoneSheet id={ui.sheet.id} />
+{:else if ui.sheet?.type === 'thread'}
+	<ThreadSheet id={ui.sheet.id} />
+{:else if ui.sheet?.type === 'settings'}
+	<SettingsSheet />
+{/if}
+
+{#if ui.toast}
+	<div class="toast" role="status" transition:fly={{ y: 20, duration: 150 }}>
+		<span>{ui.toast.text}</span>
+		{#if ui.toast.action}
+			<button
+				onclick={() => {
+					ui.toast?.action?.run();
+					ui.toast = null;
+				}}>{ui.toast.action.label}</button
+			>
+		{/if}
+	</div>
+{/if}
+
 <style>
-	:global(*) {
-		box-sizing: border-box;
-	}
-
-	:global(body) {
-		margin: 0;
-		padding: 0;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-		background: #ffffff;
-		color: #073B4C;
-		-webkit-font-smoothing: antialiased;
-	}
-
 	.app {
-		max-width: 500px;
+		max-width: 560px;
 		margin: 0 auto;
+		padding: 12px 16px calc(var(--nav-h) + 32px);
 		min-height: 100dvh;
-		display: flex;
-		flex-direction: column;
-		padding: 16px;
-		padding-bottom: 90px;
-		gap: 12px;
 	}
-
-	.app-header {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
+	.app.sheet-open {
+		padding-bottom: 70dvh;
 	}
-
-	.header-top {
+	.top {
 		display: flex;
+		align-items: center;
 		justify-content: space-between;
-		align-items: center;
+		padding: 4px 0 12px;
 	}
-
-	.app-title {
+	h1 {
 		margin: 0;
-		font-size: 1.6rem;
+		font-size: 1.5rem;
 		font-weight: 900;
-		color: #073B4C;
-		letter-spacing: -0.5px;
+		letter-spacing: -0.03em;
 	}
-
-	.accent {
-		color: #06D6A0;
+	h1 span {
+		background: var(--prime);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
 	}
-
-	.time-badge {
-		font-size: 0.82rem;
-		font-weight: 700;
-		color: #5a7a8a;
-		background: #f0f4f8;
-		padding: 4px 12px;
-		border-radius: 8px;
-	}
-
-	.tab-bar {
+	.tools {
 		display: flex;
-		gap: 4px;
-		background: #f0f4f8;
-		padding: 4px;
-		border-radius: 12px;
 	}
-
-	.tab {
-		flex: 1;
-		padding: 8px 4px;
-		border: none;
-		background: transparent;
-		border-radius: 8px;
-		font-size: 0.78rem;
-		font-weight: 600;
-		color: #5a7a8a;
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.tab.active {
-		background: white;
-		color: #073B4C;
-		box-shadow: 0 1px 4px rgba(7, 59, 76, 0.08);
-	}
-
-	.main-content {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.task-stack {
-		display: flex;
-		flex-direction: column;
-		gap: 0;
-		position: relative;
-	}
-
-	.stack-item {
-		transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
-		transform-origin: bottom center;
-	}
-
-	.stack-item {
-		transform: scale(calc(1 - var(--depth) * 0.015));
-		opacity: calc(1 - var(--depth) * 0.08);
-	}
-
-	.stack-item.completing {
-		animation: completeSlide 0.5s ease forwards;
-	}
-
-	@keyframes completeSlide {
-		0% { transform: scale(1); opacity: 1; }
-		50% { transform: scale(1.05) translateY(-10px); opacity: 0.8; }
-		100% { transform: scale(0.9) translateY(20px); opacity: 0; }
-	}
-
-	.empty-state {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		padding: 60px 20px;
-		text-align: center;
-	}
-
-	.empty-icon {
-		font-size: 3rem;
-		margin-bottom: 12px;
-	}
-
-	.empty-state h2 {
-		margin: 0;
-		font-size: 1.3rem;
-		color: #073B4C;
-	}
-
-	.empty-state p {
-		margin: 8px 0 0;
-		color: #a0b4c0;
-		font-size: 0.9rem;
-	}
-
-	.app-footer {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		padding: 12px 16px;
-		padding-bottom: max(12px, env(safe-area-inset-bottom));
-		display: flex;
-		justify-content: center;
-		z-index: 50;
-		background: linear-gradient(transparent, white 30%);
-	}
-
-	.add-btn {
+	.search {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		padding: 14px 28px;
-		background: #073B4C;
-		border: none;
-		border-radius: 16px;
-		color: white;
-		font-size: 0.92rem;
-		font-weight: 700;
-		cursor: pointer;
-		box-shadow: 0 8px 24px rgba(7, 59, 76, 0.3);
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		padding: 0 4px 0 12px;
+		margin-bottom: 12px;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		color: var(--muted);
 	}
-
-	.add-btn:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 12px 32px rgba(7, 59, 76, 0.4);
+	.search input {
+		flex: 1;
+		border: 0;
+		background: none;
+		padding: 10px 0;
+		outline: none;
+		color: var(--ink);
 	}
-
-	.add-btn:active {
-		transform: scale(0.96);
+	.nav {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 40;
+		display: grid;
+		grid-template-columns: 1fr 1fr 72px 1fr 1fr;
+		align-items: center;
+		max-width: 560px;
+		margin: 0 auto;
+		height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+		padding-bottom: env(safe-area-inset-bottom);
+		background: var(--surface);
+		border-top: 1px solid var(--line);
 	}
-
-	.add-icon {
-		font-size: 1.3rem;
-		font-weight: 300;
-		line-height: 1;
+	.nav button {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+		border: 0;
+		background: none;
+		color: var(--muted);
+		font-size: 0.68rem;
+		font-weight: 600;
+		padding: 6px 0;
 	}
-
-	.add-label {
-		letter-spacing: 0.3px;
+	.nav button.active {
+		color: var(--blue);
+	}
+	.nav .fab {
+		justify-self: center;
+		width: 58px;
+		height: 58px;
+		margin-top: -26px;
+		border-radius: 50%;
+		display: grid;
+		place-items: center;
+		background: var(--ink);
+		color: var(--surface);
+		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+		transition: transform 0.15s;
+	}
+	.nav .fab:active {
+		transform: scale(0.92);
+	}
+	.toast {
+		position: fixed;
+		left: 50%;
+		bottom: calc(var(--nav-h) + 16px);
+		transform: translateX(-50%);
+		z-index: 100;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 14px;
+		background: var(--ink);
+		color: var(--surface);
+		border-radius: 8px;
+		box-shadow: var(--shadow);
+		font-size: 0.9rem;
+		max-width: calc(100% - 32px);
+	}
+	.toast button {
+		border: 0;
+		background: none;
+		color: #ffb347;
+		font-weight: 800;
 	}
 </style>

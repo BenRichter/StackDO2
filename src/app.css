@@ -1,0 +1,191 @@
+/* StackDO design tokens.
+   Planning = calm blue/green. The one task you do next = warm, shiny, valuable. Badges: no round edges. */
+:root {
+	--bg: #f0f0f1;
+	--surface: #ffffff;
+	--surface-2: #f6f7f7;
+	--ink: #1d2327;
+	--muted: #646970;
+	--line: #dcdcde;
+	--blue: #2271b1;
+	--green: #00a32a;
+	--red: #d63638;
+	--amber: #dba617;
+	--prime: linear-gradient(135deg, #ffb347 0%, #ff7a3d 55%, #f0533a 100%);
+	--prime-ink: #3b1400;
+	--prime-solid: #ff7a3d;
+	--shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.06);
+	--radius: 10px;
+	--nav-h: 64px;
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #15181b;
+		--surface: #1f2328;
+		--surface-2: #272c32;
+		--ink: #eceef0;
+		--muted: #9aa2ab;
+		--line: #353b42;
+		--blue: #4f9ae0;
+		--green: #2fc25a;
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
+		color-scheme: dark;
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+:focus-visible {
+	outline: 2px solid var(--blue);
+	outline-offset: 2px;
+}
+
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 2px 6px;
+	border-radius: 2px;
+	background: var(--surface-2);
+	color: var(--muted);
+	white-space: nowrap;
+}
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	border: 1px solid var(--line);
+	border-radius: 999px;
+	background: var(--surface);
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--muted);
+	white-space: nowrap;
+}
+
+.chip[aria-pressed='true'] {
+	background: var(--ink);
+	border-color: var(--ink);
+	color: var(--surface);
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 10px 14px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: var(--surface);
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.btn.primary {
+	background: var(--blue);
+	border-color: var(--blue);
+	color: #fff;
+}
+
+.btn.danger {
+	color: var(--red);
+}
+
+.btn.ghost {
+	border-color: transparent;
+	background: transparent;
+}
+
+.icon-btn {
+	display: inline-grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border: none;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--muted);
+}
+
+.icon-btn:hover {
+	background: var(--surface-2);
+	color: var(--ink);
+}
+
+.field {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: var(--surface);
+}
+
+.label {
+	display: block;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--muted);
+	margin: 14px 0 6px;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	* {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+	}
+}
