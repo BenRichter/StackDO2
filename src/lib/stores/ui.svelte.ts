@@ -9,6 +9,9 @@ export type Sheet =
 
 class UiStore {
 	tab = $state<Tab>('stack');
+	stackMode = $state<'stack' | 'matrix'>('stack');
+	/** Chrome/Android install prompt, captured from `beforeinstallprompt` */
+	installPrompt = $state<(Event & { prompt: () => Promise<void> }) | null>(null);
 	sheet = $state<Sheet | null>(null);
 	searchOpen = $state(false);
 	celebrate = $state(0);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Task, Thread } from '$lib/types';
-import { buildStack, threadOpen, threadWeight, unavailableReason } from './scoring';
+import { buildStack, goalPressure, quadrant, threadOpen, threadWeight, unavailableReason } from './scoring';
 
 const threads: Thread[] = [
 	{ id: 'a', name: 'Leben', color: '#000', rank: 0 },
@@ -111,5 +111,32 @@ describe('buildStack', () => {
 		const { ready, later } = buildStack([t], { now: monday10, threads: [...threads, { id: 'z', name: 'Z', color: '#000', rank: 3, archived: true }] });
 		expect(ready).toHaveLength(0);
 		expect(later).toHaveLength(0);
+	});
+});
+
+describe('eisenhower', () => {
+	it('maps urgency × importance to the four quadrants', () => {
+		expect(quadrant(task({ importance: 5, dueDate: '2026-09-28' }), monday10)).toBe('do');
+		expect(quadrant(task({ importance: 3, dueDate: '2026-10-20' }), monday10)).toBe('plan');
+		expect(quadrant(task({ importance: 2, dueDate: '2026-09-29' }), monday10)).toBe('delegate');
+		expect(quadrant(task({ importance: 2 }), monday10)).toBe('drop');
+	});
+
+	it('"sofort erledigen" beats "terminieren" at equal weight', () => {
+		const doNow = task({ importance: 4, dueDate: '2026-09-28' });
+		const later = task({ importance: 5 });
+		const { ready } = buildStack([later, doNow], { now: monday10, threads });
+		expect(ready[0].task.id).toBe(doNow.id);
+		expect(ready[0].parts.map((p) => p.label)).toContain('Sofort erledigen');
+	});
+});
+
+describe('goals', () => {
+	it('adds pressure when a thread goal deadline approaches', () => {
+		const g = (deadline: string): Thread => ({ id: 'g', name: 'G', color: '#000', rank: 0, goal: { text: 'x', deadline } });
+		expect(goalPressure(g('2026-12-01'), monday10)).toBe(0);
+		expect(goalPressure(g('2026-10-05'), monday10)).toBe(7);
+		expect(goalPressure(g('2026-09-20'), monday10)).toBe(14);
+		expect(goalPressure(undefined, monday10)).toBe(0);
 	});
 });

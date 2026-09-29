@@ -2,6 +2,8 @@
 	import { app } from '$lib/stores/app.svelte';
 	import { ui, type Tab } from '$lib/stores/ui.svelte';
 	import Icon, { type IconName } from '$lib/components/Icon.svelte';
+	import Logo from '$lib/components/Logo.svelte';
+	import { onMount } from 'svelte';
 	import AnimationCanvas from '$lib/components/AnimationCanvas.svelte';
 	import StackView from '$lib/components/views/StackView.svelte';
 	import DayView from '$lib/components/views/DayView.svelte';
@@ -14,26 +16,24 @@
 	import SettingsSheet from '$lib/components/sheets/SettingsSheet.svelte';
 	import { fly } from 'svelte/transition';
 
-	const TABS: { id: Tab; label: string; icon: IconName }[] = [
-		{ id: 'stack', label: 'Stapel', icon: 'stack' },
-		{ id: 'day', label: 'Tag', icon: 'clock' },
-		{ id: 'threads', label: 'Stränge', icon: 'threads' },
-		{ id: 'stats', label: 'Statistik', icon: 'chart' }
+	const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
+		{ id: 'stack', label: 'Stapel', title: 'Jetzt', icon: 'stack' },
+		{ id: 'day', label: 'Tag', title: 'Heute', icon: 'clock' },
+		{ id: 'threads', label: 'Stränge', title: 'Stränge', icon: 'threads' },
+		{ id: 'stats', label: 'Statistik', title: 'Rückblick', icon: 'chart' }
 	];
+	const current = $derived(TABS.find((t) => t.id === ui.tab)!);
+	const dateLine = $derived(app.now.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }));
+
+	onMount(() => {
+		// PWA shortcut / widget-like entry: ?new opens the add panel, ?tab=day jumps to a view
+		const params = new URLSearchParams(location.search);
+		if (params.has('new')) ui.open({ type: 'task' });
+		const tab = params.get('tab') as Tab | null;
+		if (tab && TABS.some((t) => t.id === tab)) ui.tab = tab;
+	});
 
 	let searchEl = $state<HTMLInputElement>();
-
-	function done(id: string) {
-		const task = app.tasks.find((t) => t.id === id);
-		app.complete(id);
-		if (app.settings.animations) ui.celebrate++;
-		// tutorial finished → retire its thread
-		if (task?.tutorial && !app.tasks.some((t) => t.tutorial && !t.completedAt)) {
-			app.updateThread('tutorial', { archived: true });
-			ui.notify('Tutorial durch. Ab jetzt: nicht wählen, machen.');
-		}
-		ui.open({ type: 'done', id });
-	}
 
 	function toggleSearch() {
 		ui.searchOpen = !ui.searchOpen;
@@ -57,6 +57,9 @@
 		} else if (e.key === ' ' && top && ui.tab === 'stack' && target.tagName !== 'BUTTON') {
 			e.preventDefault();
 			app.toggle(top.task.id);
+		} else if (e.key === 'm') {
+			ui.tab = 'stack';
+			ui.stackMode = ui.stackMode === 'matrix' ? 'stack' : 'matrix';
 		} else if (e.key >= '1' && e.key <= '4') {
 			ui.tab = TABS[Number(e.key) - 1].id;
 		}
@@ -72,12 +75,15 @@
 
 <div class="app" class:sheet-open={!!ui.sheet}>
 	<header class="top">
-		<h1>Stack<span>DO</span></h1>
-		<div class="tools">
-			<button class="icon-btn" onclick={toggleSearch} aria-label="Suche" aria-pressed={ui.searchOpen}><Icon name="search" /></button>
-			<button class="icon-btn" onclick={() => ui.open({ type: 'settings' })} aria-label="Einstellungen"><Icon name="settings" /></button>
-		</div>
+		<button class="menu" onclick={() => ui.open({ type: 'settings' })} aria-label="Menü öffnen" title="Menü">
+			<Logo size={26} />
+		</button>
+		<button class="icon-btn" onclick={toggleSearch} aria-label="Suche" aria-pressed={ui.searchOpen}><Icon name="search" /></button>
 	</header>
+	<div class="view-head">
+		<h1>{current.title}</h1>
+		<p>{dateLine}</p>
+	</div>
 
 	{#if ui.searchOpen}
 		<div class="search" transition:fly={{ y: -8, duration: 150 }}>
@@ -89,7 +95,7 @@
 
 	<main>
 		{#if ui.tab === 'stack'}
-			<StackView onDone={done} />
+			<StackView />
 		{:else if ui.tab === 'day'}
 			<DayView />
 		{:else if ui.tab === 'threads'}
@@ -158,20 +164,27 @@
 		justify-content: space-between;
 		padding: 4px 0 12px;
 	}
-	h1 {
-		margin: 0;
-		font-size: 1.5rem;
-		font-weight: 900;
-		letter-spacing: -0.03em;
-	}
-	h1 span {
-		background: var(--prime);
-		-webkit-background-clip: text;
-		background-clip: text;
-		color: transparent;
-	}
-	.tools {
+	.menu {
 		display: flex;
+		align-items: center;
+		padding: 6px 8px 6px 0;
+		border: 0;
+		background: none;
+	}
+	.view-head {
+		margin: 4px 0 16px;
+	}
+	.view-head h1 {
+		margin: 0;
+		font-size: 2.1rem;
+		font-weight: 900;
+		letter-spacing: -0.035em;
+		line-height: 1.05;
+	}
+	.view-head p {
+		margin: 4px 0 0;
+		color: var(--muted);
+		font-weight: 600;
 	}
 	.search {
 		display: flex;

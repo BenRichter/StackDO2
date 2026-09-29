@@ -22,9 +22,10 @@ npm run build    # static SPA into ./build (adapter-static, fallback index.html)
 
 - `src/lib/types.ts` – data model. `Thread` (= "Strang": life area/project, `rank` = relative priority, optional blocker `window`), `Task` (always belongs to a thread), `HistoryEntry` (compact record of every completion; survives the 30-day cleanup, feeds stats + duration predictions).
 - `src/lib/stores/app.svelte.ts` – single `AppStore` class with all state + mutations. Persists automatically via `$effect.root`; syncs across tabs via `storage` event; migrates v1 data (`stackdo2-tasks`).
-- `src/lib/stores/ui.svelte.ts` – tab, open bottom sheet, toast, celebration trigger.
+- `src/lib/stores/ui.svelte.ts` – tab, stack/matrix mode, open bottom sheet, toast, celebration trigger, PWA install prompt.
+- `src/lib/stores/actions.ts` – `finishTask()`: the one way to complete a task from the UI (celebration, tutorial retirement, done sheet).
 - `src/lib/utils/` – **pure, tested logic** (keep it free of Svelte/DOM):
-  - `scoring.ts` – availability (`unavailableReason`) + score (`scoreTask`) + `buildStack`. Score parts are shown to the user ("Warum?"), so every bonus needs a German label.
+  - `scoring.ts` – availability (`unavailableReason`) + score (`scoreTask`) + `buildStack`; Eisenhower `quadrant()` (urgent = due ≤ tomorrow, important = importance ≥ 3); `goalPressure()` from thread goal deadlines. Score parts are shown to the user ("Warum?"), so every bonus needs a German label.
   - `plan.ts` – lays the stack onto today's 24h clock; blocker threads own their windows, other tasks fill free time.
   - `parse.ts` – quick-add syntax (`#tag !4 30m morgen 14:00 +Strang`).
   - `predict.ts` – realistic duration from similar history; estimation factor.
@@ -35,5 +36,6 @@ npm run build    # static SPA into ./build (adapter-static, fallback index.html)
 
 - Scoring changes → update/add tests in `scoring.test.ts`. Keep time-dependent tests on fixed `Date`s.
 - Design tokens in `src/app.css` (WordPress-like grey bg, calm blue/green for planning, warm shiny gradient `--prime` only for the "Jetzt dran" card). Badges have square corners (`border-radius: 2px`).
-- Icons: inline Lucide-style paths in `Icon.svelte`; add new ones there.
+- Icons: inline Lucide-style paths in `Icon.svelte`; add new ones there. Logo "=DO" is `Logo.svelte` (top-left, opens the menu); app icons in `static/` (PNG generated from `icon.svg`).
+- Hosting: GitHub Pages via `.github/workflows/deploy.yml`; `BASE_PATH` env sets `paths.base`.
 - Left-handed setting mirrors the primary actions – respect `app.settings.leftHanded` in new action rows.

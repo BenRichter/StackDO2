@@ -365,6 +365,14 @@ class AppStore {
 		this.updateTask(id, { pushedUntil: undefined });
 	}
 
+	/** Eisenhower "delegieren": hand it off, it comes back as a check-in after `days`. */
+	delegate(id: string, who: string, days = 3) {
+		const until = addDays(new Date(), days);
+		until.setHours(Math.floor(hmToMin(this.settings.dayStart) / 60) + 2, 0, 0, 0);
+		this.push(id, until, `delegiert an ${who}`);
+		this.updateTask(id, { delegatedTo: who, estimate: Math.min(this.tasks.find((t) => t.id === id)?.estimate ?? 5, 10) });
+	}
+
 	// ── threads ───────────────────────────────────────────
 
 	addThread(name: string, color?: string) {
@@ -376,6 +384,21 @@ class AppStore {
 		};
 		this.threads.push(th);
 		return th;
+	}
+
+	/** Goal → plan: every line becomes a task on that thread, first step most important. */
+	planGoal(threadId: string, steps: string[]) {
+		const clean = steps.map((s) => s.trim()).filter(Boolean);
+		clean.forEach((title, i) =>
+			this.addTask({ title, threadId, importance: Math.max(2, 4 - i), estimate: 30 })
+		);
+		return clean.length;
+	}
+
+	/** The goal of the highest-ranked thread that has one – the overall goal to remind you of. */
+	get mainGoal() {
+		const th = this.activeThreads.find((t) => t.goal?.text);
+		return th ? { thread: th, goal: th.goal! } : null;
 	}
 
 	updateThread(id: string, patch: Partial<Thread>) {

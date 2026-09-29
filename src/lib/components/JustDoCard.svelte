@@ -3,11 +3,23 @@
 	import { BABYSTEP_LIMIT } from '$lib/types';
 	import { app } from '$lib/stores/app.svelte';
 	import { ui } from '$lib/stores/ui.svelte';
+	import { finishTask } from '$lib/stores/actions';
 	import { fmtClock, fmtDuration, loggedMinutes } from '$lib/utils/time';
 	import Icon from './Icon.svelte';
 	import TaskMeta from './TaskMeta.svelte';
 
-	let { item, onDone }: { item: ScoredTask; onDone: (id: string) => void } = $props();
+	let { item }: { item: ScoredTask } = $props();
+
+	// Done effects – short and crisp, not a circus
+	const FX = ['glow', 'squash', 'burn', 'hammer'] as const;
+	let fx = $state<(typeof FX)[number] | null>(null);
+
+	function done() {
+		if (fx) return;
+		if (!app.settings.animations) return finishTask(task.id);
+		fx = FX[Math.floor(Math.random() * FX.length)];
+		setTimeout(() => finishTask(task.id), 520);
+	}
 
 	const task = $derived(item.task);
 	const running = $derived(app.timer?.taskId === task.id);
@@ -41,7 +53,7 @@
 	});
 </script>
 
-<article class="card" class:running class:lefty={app.settings.leftHanded} style:--c={thread?.color}>
+<article class="card fx-{fx}" class:running class:lefty={app.settings.leftHanded} style:--c={thread?.color}>
 	<div class="shine" aria-hidden="true"></div>
 	<header>
 		<span class="kicker">
@@ -55,6 +67,9 @@
 
 	<h2>{task.title}</h2>
 	<TaskMeta {task} showThread={false} />
+	{#if thread?.goal?.text}
+		<p class="why-goal"><Icon name="target" size={14} /> Wofür: {thread.goal.text}</p>
+	{/if}
 
 	{#if showWhy}
 		<div class="why">
@@ -91,7 +106,7 @@
 			<Icon name={running ? 'pause' : 'play'} size={22} fill />
 			{running ? 'Pause' : 'Start'}
 		</button>
-		<button class="done" onclick={() => onDone(task.id)}>
+		<button class="done" onclick={done}>
 			<Icon name="check" size={22} /> Erledigt
 		</button>
 	</div>
@@ -116,6 +131,78 @@
 		box-shadow:
 			0 10px 30px -8px rgba(240, 83, 58, 0.55),
 			inset 0 1px 0 rgba(255, 255, 255, 0.5);
+	}
+	.why-goal {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin: 10px 0 0;
+		font-size: 0.85rem;
+		font-weight: 600;
+		opacity: 0.85;
+	}
+	/* done effects */
+	.fx-glow {
+		animation: glow 0.52s ease-out forwards;
+	}
+	@keyframes glow {
+		40% {
+			box-shadow: 0 0 0 6px #fff, 0 0 60px 20px #ffb347;
+			filter: brightness(1.25);
+		}
+		100% {
+			box-shadow: 0 0 0 0 #fff, 0 0 90px 40px transparent;
+			opacity: 0;
+			transform: scale(1.04);
+		}
+	}
+	.fx-squash {
+		transform-origin: bottom center;
+		animation: squash 0.52s cubic-bezier(0.6, -0.3, 0.7, 0.2) forwards;
+	}
+	@keyframes squash {
+		30% {
+			transform: scale(1.04, 0.9);
+		}
+		100% {
+			transform: scale(1.25, 0.02);
+			opacity: 0.2;
+		}
+	}
+	.fx-burn {
+		animation: burn 0.52s ease-in forwards;
+	}
+	@keyframes burn {
+		0% {
+			filter: none;
+		}
+		50% {
+			filter: sepia(1) saturate(4) hue-rotate(-20deg) brightness(1.2);
+		}
+		100% {
+			filter: sepia(1) saturate(6) brightness(0.2) blur(4px);
+			opacity: 0;
+			transform: translateY(-20px) scale(0.96);
+			clip-path: inset(0 0 100% 0);
+		}
+	}
+	.fx-hammer {
+		animation: hammer 0.52s cubic-bezier(0.3, 1.6, 0.6, 1) forwards;
+	}
+	@keyframes hammer {
+		0% {
+			transform: rotate(0);
+		}
+		25% {
+			transform: rotate(-3deg) translateY(-8px);
+		}
+		45% {
+			transform: rotate(0) translateY(6px) scaleY(0.94);
+		}
+		100% {
+			transform: translateY(120px) rotate(4deg);
+			opacity: 0;
+		}
 	}
 	.shine {
 		position: absolute;

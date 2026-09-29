@@ -14,6 +14,11 @@
 	let from = $state(existing?.window?.from ?? '08:00');
 	let to = $state(existing?.window?.to ?? '17:00');
 	let days = $state<number[]>(existing?.window?.days ?? [1, 2, 3, 4, 5]);
+	let goalText = $state(existing?.goal?.text ?? '');
+	let goalMeasure = $state(existing?.goal?.measure ?? '');
+	let goalDeadline = $state(existing?.goal?.deadline ?? '');
+	let goalStretch = $state(existing?.goal?.stretch ?? '');
+	let steps = $state('');
 
 	const DAY_LABELS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 	const openTasks = existing ? app.tasks.filter((t) => t.threadId === existing.id && !t.completedAt).length : 0;
@@ -23,14 +28,25 @@
 		const patch = {
 			name: name.trim(),
 			color,
-			window: blocker ? { from, to, days: [...days].sort() } : undefined
+			window: blocker ? { from, to, days: [...days].sort() } : undefined,
+			goal: goalText.trim()
+				? {
+						text: goalText.trim(),
+						measure: goalMeasure.trim() || undefined,
+						deadline: goalDeadline || undefined,
+						stretch: goalStretch.trim() || undefined
+					}
+				: undefined
 		};
+		let threadId = existing?.id;
 		if (existing) app.updateThread(existing.id, patch);
 		else {
-			const th = app.addThread(patch.name, color);
-			app.updateThread(th.id, patch);
+			threadId = app.addThread(patch.name, color).id;
+			app.updateThread(threadId, patch);
 		}
+		const n = app.planGoal(threadId!, steps.split('\n'));
 		ui.close();
+		if (n) ui.notify(`${n} Schritte auf dem Stapel`);
 	}
 
 	function remove() {
@@ -82,6 +98,19 @@
 			</div>
 		{/if}
 
+		<span class="label">Ziel (SMART)</span>
+		<div class="smart">
+			<label><span><b>S</b>pezifisch – was genau?</span><input class="field" bind:value={goalText} placeholder="z.B. Portfolio-Website online" /></label>
+			<label><span><b>M</b>essbar – woran erkennst du's?</span><input class="field" bind:value={goalMeasure} placeholder="z.B. 5 Projekte, eigene Domain" /></label>
+			<label><span><b>T</b>erminiert – bis wann?</span><input class="field" type="date" bind:value={goalDeadline} /></label>
+			<label><span>Stretch-Ziel – die ambitionierte Version</span><input class="field" bind:value={goalStretch} placeholder="z.B. 3 Anfragen darüber" /></label>
+			<p class="hint"><b>A</b>ttraktiv & <b>R</b>ealistisch? Wenn nicht: kleiner machen. Das Ziel erinnert dich auf jeder Karte dieses Strangs daran, wofür du's tust.</p>
+		</div>
+
+		<span class="label">Ziel → Plan</span>
+		<textarea class="field" rows="3" bind:value={steps} placeholder={'Ein Schritt pro Zeile, z.B.\nDomain kaufen\nTexte schreiben\nFotos auswählen'}></textarea>
+		<p class="hint">Jede Zeile wird eine Aufgabe in diesem Strang – der erste Schritt am wichtigsten.</p>
+
 		{#if existing}
 			<div class="row tools">
 				<button type="button" class="btn" onclick={() => { app.updateThread(existing.id, { archived: !existing.archived }); ui.close(); }}>
@@ -124,6 +153,29 @@
 	}
 	.tools {
 		margin-top: 16px;
+	}
+	.smart {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.smart label {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		font-size: 0.8rem;
+		color: var(--muted);
+	}
+	.smart b {
+		color: var(--prime-solid);
+	}
+	.hint {
+		margin: 4px 0 0;
+		font-size: 0.78rem;
+		color: var(--muted);
+	}
+	textarea {
+		resize: vertical;
 	}
 	.save {
 		width: 100%;

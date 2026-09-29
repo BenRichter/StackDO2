@@ -1,12 +1,13 @@
 /* StackDO design tokens.
    Planning = calm blue/green. The one task you do next = warm, shiny, valuable. Badges: no round edges. */
 :root {
-	--bg: #f0f0f1;
+	--bg: #f2f2f5;
 	--surface: #ffffff;
-	--surface-2: #f6f7f7;
-	--ink: #1d2327;
-	--muted: #646970;
-	--line: #dcdcde;
+	--surface-2: #f4f4f6;
+	--ink: #16181b;
+	--muted: #6b7078;
+	--line: #dcdde1;
+	--line-soft: #ececef;
 	--blue: #2271b1;
 	--green: #00a32a;
 	--red: #d63638;
@@ -14,8 +15,8 @@
 	--prime: linear-gradient(135deg, #ffb347 0%, #ff7a3d 55%, #f0533a 100%);
 	--prime-ink: #3b1400;
 	--prime-solid: #ff7a3d;
-	--shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.06);
-	--radius: 10px;
+	--shadow: 0 1px 2px rgba(20, 20, 30, 0.04), 0 6px 20px rgba(20, 20, 30, 0.05);
+	--radius: 14px;
 	--nav-h: 64px;
 	color-scheme: light;
 }
@@ -28,6 +29,7 @@
 		--ink: #eceef0;
 		--muted: #9aa2ab;
 		--line: #353b42;
+		--line-soft: #2b3036;
 		--blue: #4f9ae0;
 		--green: #2fc25a;
 		--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);

@@ -6,7 +6,10 @@
 		<meta name="theme-color" content="#1d2327" />
 		<meta name="description" content="StackDO – nie wieder wählen, was als Nächstes kommt. Einfach machen." />
 		<link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
-		<link rel="apple-touch-icon" href="%sveltekit.assets%/icon.svg" />
+		<link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon.png" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-title" content="=DO" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 		<style>
 			#splash {
 				position: fixed;
@@ -31,17 +34,13 @@
 				font-weight: 900;
 				letter-spacing: -0.03em;
 			}
-			#splash .logo span {
-				background: linear-gradient(135deg, #ffb347, #ff7a3d 55%, #f0533a);
-				-webkit-background-clip: text;
-				background-clip: text;
-				color: transparent;
-			}
-			#splash .bars { display: flex; flex-direction: column; gap: 5px; width: 64px; }
+			#splash .mark { display: flex; align-items: center; gap: 8px; }
+			#splash .logo { font-size: 3.4rem; line-height: 1; }
+			#splash .bars { display: flex; flex-direction: column; gap: 5px; width: 52px; }
 			#splash .bars i { display: block; height: 8px; border-radius: 2px; animation: drop 0.9s ease-out both; }
 			#splash .bars i:nth-child(1) { background: linear-gradient(135deg, #ffb347, #f0533a); animation-delay: 0.3s; height: 12px; }
-			#splash .bars i:nth-child(2) { background: #00a32a; animation-delay: 0.15s; }
-			#splash .bars i:nth-child(3) { background: #2271b1; }
+			#splash .bars i:nth-child(2) { background: rgba(255,255,255,.85); animation-delay: 0.15s; }
+			#splash .bars i:nth-child(3) { background: rgba(255,255,255,.45); }
 			#splash p { margin: 0; opacity: 0.6; font-size: 0.9rem; }
 			@keyframes drop { from { transform: translateY(-30px); opacity: 0; } }
 		</style>
@@ -49,8 +48,7 @@
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div id="splash" aria-hidden="true">
-			<div class="bars"><i></i><i></i><i></i></div>
-			<div class="logo">Stack<span>DO</span></div>
+			<div class="mark"><div class="bars"><i></i><i></i><i></i></div><div class="logo">DO</div></div>
 			<p>Nicht wählen. Machen.</p>
 		</div>
 		<div style="display: contents">%sveltekit.body%</div>

@@ -9,7 +9,17 @@ export const uid = () =>
 export function seedThreads(): Thread[] {
 	return [
 		{ id: 'tutorial', name: 'StackDO lernen', color: '#e26f1f', rank: 0 },
-		{ id: 'selfcare', name: 'Self Care', color: '#00a32a', rank: 1 },
+		{
+			id: 'selfcare',
+			name: 'Self Care',
+			color: '#00a32a',
+			rank: 1,
+			goal: {
+				text: 'Fit & ausgeschlafen durch den Winter',
+				measure: '3× Sport pro Woche, 7h Schlaf',
+				stretch: 'Halbmarathon im Frühling'
+			}
+		},
 		{
 			id: 'work',
 			name: 'Arbeit',
@@ -71,6 +81,18 @@ export function seedTasks(now = new Date()): Task[] {
 		base(
 			'Blick auf die Tagesuhr',
 			'Tab „Tag“: 24h-Uhr mit Blockern (Arbeit), deinem Plan ab jetzt und dem, was wirklich passiert ist.',
+			2,
+			3
+		),
+		base(
+			'Setz dir ein Ziel für einen Strang',
+			'Stränge → Strang antippen → Ziel (SMART): Was genau? Woran messbar? Bis wann? Plus Stretch-Ziel. Aus dem Ziel werden mit „Ziel → Plan“ direkt Aufgaben. Das Ziel erscheint als Erinnerung auf der Karte.',
+			5,
+			3
+		),
+		base(
+			'Eisenhower-Matrix ansehen',
+			'Stapel → „Matrix“: Sofort erledigen · Terminieren · Delegieren · Ignorieren. Der Stapel sortiert danach – die Matrix zeigt dir, was du abgeben oder streichen kannst.',
 			2,
 			3
 		),

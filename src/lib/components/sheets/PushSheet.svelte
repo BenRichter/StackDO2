@@ -8,6 +8,7 @@
 
 	const task = $derived(app.tasks.find((t) => t.id === id));
 	let waitingFor = $state('');
+	let delegateTo = $state('');
 
 	const at = (dayOffset: number, hm: string) => {
 		const d = addDays(new Date(), dayOffset);
@@ -56,6 +57,20 @@
 		>
 			<input class="field" bind:value={waitingFor} placeholder="Antwort von Tom, Lieferung …" />
 			<button class="btn primary">2 Tage</button>
+		</form>
+		<span class="label">Delegieren an … (Eisenhower)</span>
+		<form
+			class="row wait"
+			onsubmit={(e) => {
+				e.preventDefault();
+				if (!delegateTo.trim()) return;
+				app.delegate(id, delegateTo.trim());
+				ui.close();
+				ui.notify(`An ${delegateTo.trim()} delegiert – Check-in in 3 Tagen`);
+			}}
+		>
+			<input class="field" bind:value={delegateTo} placeholder="Name" />
+			<button class="btn primary" disabled={!delegateTo.trim()}>Abgeben</button>
 		</form>
 		{#if task.pushHistory.length >= 3}
 			<p class="nudge">Schon {task.pushHistory.length}× verschoben. Zu groß? Löschen? Oder einfach 5 Minuten anfangen.</p>

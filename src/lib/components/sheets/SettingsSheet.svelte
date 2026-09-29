@@ -8,6 +8,15 @@
 
 	let fileInput = $state<HTMLInputElement>();
 
+	const standalone =
+		matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+	const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+	async function install() {
+		await ui.installPrompt?.prompt();
+		ui.installPrompt = null;
+	}
+
 	function exportJson() {
 		download(`stackdo-${dateKey()}.json`, JSON.stringify(app.snapshot(), null, 2), 'application/json');
 	}
@@ -29,7 +38,19 @@
 	}
 </script>
 
-<BottomSheet title="Einstellungen">
+<BottomSheet title="Menü">
+	<span class="label">App</span>
+	{#if standalone}
+		<p class="ok"><Icon name="check" size={16} /> Als App installiert – läuft auch offline.</p>
+	{:else if ui.installPrompt}
+		<button class="btn primary wide" onclick={install}><Icon name="install" size={18} /> App installieren</button>
+		<p class="hint">Eigenes Icon auf dem Homescreen, eigenes Fenster, offline nutzbar. Lange drücken auf das Icon: „Neue Aufgabe“ direkt.</p>
+	{:else if ios}
+		<p class="hint">Installieren: in Safari <b>Teilen</b> → <b>Zum Home-Bildschirm</b>.</p>
+	{:else}
+		<p class="hint">Installieren: im Browser-Menü <b>App installieren</b> / <b>Zum Startbildschirm hinzufügen</b>. Funktioniert offline.</p>
+	{/if}
+
 	<span class="label">Arbeitszeit pro Tag</span>
 	<div class="row">
 		<input class="field sm" type="number" min="1" max="16" bind:value={app.settings.workHours} /> Stunden
@@ -71,6 +92,18 @@
 </BottomSheet>
 
 <style>
+	.wide {
+		width: 100%;
+		min-height: 48px;
+	}
+	.ok {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin: 0;
+		color: var(--green);
+		font-weight: 600;
+	}
 	.sm {
 		width: 72px;
 		padding: 6px 8px;

@@ -6,7 +6,20 @@ export interface Thread {
 	rank: number;
 	/** Blocker window, e.g. work 08:00–17:00. Tasks of this thread are only available inside it. */
 	window?: { from: string; to: string; days: number[] };
+	/** SMART goal this thread works towards – shown as a reminder on the "Jetzt dran" card */
+	goal?: Goal;
 	archived?: boolean;
+}
+
+export interface Goal {
+	/** Specific: what exactly */
+	text: string;
+	/** Measurable: how do I know it's done */
+	measure?: string;
+	/** Time-bound: YYYY-MM-DD */
+	deadline?: string;
+	/** Stretch goal: the ambitious version */
+	stretch?: string;
 }
 
 export type Recurrence = 'none' | 'daily' | 'weekdays' | 'weekly' | 'monthly';
@@ -45,6 +58,8 @@ export interface Task {
 	pushedUntil?: string;
 	pushHistory: PushEntry[];
 	followUpOf?: string;
+	/** Eisenhower "delegieren": who is on it */
+	delegatedTo?: string;
 	tutorial?: boolean;
 }
 

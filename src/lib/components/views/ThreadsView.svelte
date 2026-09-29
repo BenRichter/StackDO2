@@ -40,6 +40,9 @@
 					<button class="icon-btn" disabled={i === strands.length - 1} onclick={() => app.moveThread(th.id, 1)} aria-label="{th.name} niedriger priorisieren"><Icon name="down" size={18} /></button>
 				</div>
 			</header>
+			{#if th.goal?.text}
+				<p class="goal"><Icon name="target" size={13} /> {th.goal.text}{th.goal.deadline ? ` · bis ${new Date(th.goal.deadline).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}` : ''}</p>
+			{/if}
 			<div class="weight" title="Gewicht im Stapel"><div style:width="{(weight / maxWeight) * 100}%"></div></div>
 			<div class="string">
 				<span class="cord" aria-hidden="true"></span>
@@ -130,6 +133,15 @@
 	}
 	.order .icon-btn:disabled {
 		opacity: 0.25;
+	}
+	.goal {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin: 8px 0 0;
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: var(--c);
 	}
 	.weight {
 		height: 3px;

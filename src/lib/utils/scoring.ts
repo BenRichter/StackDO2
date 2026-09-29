@@ -73,6 +73,34 @@ export function urgency(task: Task, now: Date): number {
 	return 0;
 }
 
+// ── Eisenhower ───────────────────────────────────────────
+
+export type Quadrant = 'do' | 'plan' | 'delegate' | 'drop';
+
+export const QUADRANTS: Record<Quadrant, { label: string; hint: string }> = {
+	do: { label: 'Sofort erledigen', hint: 'dringend & wichtig' },
+	plan: { label: 'Terminieren', hint: 'wichtig, nicht dringend' },
+	delegate: { label: 'Delegieren', hint: 'dringend, nicht wichtig' },
+	drop: { label: 'Ignorieren', hint: 'weder noch' }
+};
+
+/** Urgent = overdue, due today or tomorrow. Important = "normal" (3) or above; 1–2 are nice-to-haves. */
+export const isUrgent = (task: Task, now: Date) => urgency(task, now) >= 22;
+export const isImportant = (task: Task) => task.importance >= 3;
+
+export function quadrant(task: Task, now: Date): Quadrant {
+	const u = isUrgent(task, now);
+	const i = isImportant(task);
+	return u && i ? 'do' : i ? 'plan' : u ? 'delegate' : 'drop';
+}
+
+/** Goal deadline pressure: tasks of a thread whose goal is due within 14 days climb. */
+export function goalPressure(thread: Thread | undefined, now: Date): number {
+	if (!thread?.goal?.deadline) return 0;
+	const days = daysBetween(now, parseDateKey(thread.goal.deadline));
+	return days > 14 ? 0 : Math.min(14, 14 - days);
+}
+
 export function scoreTask(task: Task, ctx: ScoreContext): ScoredTask {
 	const parts: ScorePart[] = [];
 	const add = (label: string, value: number) => {
@@ -85,9 +113,14 @@ export function scoreTask(task: Task, ctx: ScoreContext): ScoredTask {
 	add('Wichtig', (task.importance - 1) * 7);
 	add('Dringend', urgency(task, ctx.now));
 
+	const q = quadrant(task, ctx.now);
+	if (q === 'do') add(QUADRANTS.do.label, 10);
+	else if (q === 'drop') add('Ignorieren?', -5);
+
 	// A blocker window is that thread's time: while it's open, its tasks come first
 	const thread = ctx.threads.find((t) => t.id === task.threadId);
 	if (thread?.window && threadOpen(thread, ctx.now)) add('Zeitfenster', 20);
+	add('Ziel-Deadline', goalPressure(thread, ctx.now));
 
 	// Quick wins float up, monsters sink (and get the babysteps hint)
 	if (task.estimate <= 15) add('Quick Win', 8);
