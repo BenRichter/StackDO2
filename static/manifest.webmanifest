@@ -19,6 +19,6 @@
 	],
 	"shortcuts": [
 		{ "name": "Neue Aufgabe", "short_name": "Neu", "url": "./?new", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
-		{ "name": "Heute (Tagesuhr)", "short_name": "Heute", "url": "./?tab=day", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+		{ "name": "Heute (Tagesuhr)", "short_name": "Heute", "url": "./?view=day", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
 	]
 }

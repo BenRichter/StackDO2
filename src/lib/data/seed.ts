@@ -52,8 +52,8 @@ export function seedTasks(now = new Date()): Task[] {
 	return [
 		{
 			...base(
-				'Drück ▶ Start – und dann ✓ Erledigt',
-				'Oben liegt immer genau EINE Aufgabe: die nächste. Nicht wählen – einfach machen. Start misst die echte Zeit, das macht deine Schätzungen besser.',
+				'Drück ▶ Start – dann ✓ oder nach rechts wischen',
+				'Oben liegt immer genau EINE Aufgabe: die nächste. Nicht wählen – einfach machen. Start misst die echte Zeit, das macht deine Schätzungen besser. Wischen: rechts = erledigt, links = später.',
 				2,
 				5
 			),
@@ -61,7 +61,7 @@ export function seedTasks(now = new Date()): Task[] {
 		},
 		base(
 			'Lege deine Stränge an',
-			'Tab „Stränge“: Leben, Arbeit, Familie … Reihenfolge = Priorität. Arbeit hat ein Zeitfenster (Blocker) – deren Aufgaben kommen nur in diesem Fenster.',
+			'Menü (Logo oben links) → „Stränge & Ziele“: Leben, Arbeit, Familie … Reihenfolge = Priorität. Arbeit hat ein Zeitfenster (Blocker) – deren Aufgaben kommen nur in diesem Fenster.',
 			5,
 			4
 		),
@@ -73,26 +73,26 @@ export function seedTasks(now = new Date()): Task[] {
 			['write']
 		),
 		base(
-			'Aufgabe zurückstellen (⏷)',
-			'Geht gerade nicht? Zurückstellen: 1h, heute Abend, morgen, nächste Woche oder „warte auf …“. Der Verlauf bleibt erhalten.',
+			'Aufgabe zurückstellen (nach links wischen)',
+			'Geht gerade nicht? Nach links wischen oder „Später“: 1h, heute Abend, morgen, nächste Woche oder „warte auf …“. Der Verlauf bleibt erhalten.',
 			2,
 			3
 		),
 		base(
 			'Blick auf die Tagesuhr',
-			'Tab „Tag“: 24h-Uhr mit Blockern (Arbeit), deinem Plan ab jetzt und dem, was wirklich passiert ist.',
+			'Menü → „Heute“: 24h-Uhr mit Blockern (Arbeit), deinem Plan ab jetzt und dem, was wirklich passiert ist.',
 			2,
 			3
 		),
 		base(
 			'Setz dir ein Ziel für einen Strang',
-			'Stränge → Strang antippen → Ziel (SMART): Was genau? Woran messbar? Bis wann? Plus Stretch-Ziel. Aus dem Ziel werden mit „Ziel → Plan“ direkt Aufgaben. Das Ziel erscheint als Erinnerung auf der Karte.',
+			'Menü → „Stränge & Ziele“ → Strang antippen → Ziel (SMART): Was genau? Woran messbar? Bis wann? Plus Stretch-Ziel. Aus dem Ziel werden mit „Ziel → Plan“ direkt Aufgaben. Das Ziel erscheint als Erinnerung auf der Karte.',
 			5,
 			3
 		),
 		base(
 			'Eisenhower-Matrix ansehen',
-			'Stapel → „Matrix“: Sofort erledigen · Terminieren · Delegieren · Ignorieren. Der Stapel sortiert danach – die Matrix zeigt dir, was du abgeben oder streichen kannst.',
+			'Menü → „Matrix“: Sofort erledigen · Terminieren · Delegieren · Ignorieren. Der Stapel sortiert danach – die Matrix zeigt dir, was du abgeben oder streichen kannst.',
 			2,
 			3
 		),

@@ -11,6 +11,13 @@ npm test        # Unit-Tests (Scoring, Tagesplan, Parser, Prognose)
 npm run build   # statische App in ./build (PWA, offline-fähig)
 ```
 
+## Bedienung
+
+- **Öffnen = Stapel.** Oben die eine Karte, die jetzt dran ist, darunter „Danach“. Kein Tab-Gewusel.
+- **Karte wischen**: rechts = erledigt, links = später. Oder ▶ Start / ✓.
+- **＋** unten mittig: neue Aufgabe. **Lupe**: Suche + Filter.
+- **Logo „=DO“ oben links = Menü**: Matrix, Heute (Tagesuhr), Stränge & Ziele, Rückblick, Einstellungen.
+
 ## Konzept
 
 - **Stränge** (Threads): Leben, Self Care, Familie, Arbeit … laufen parallel an einer Schnur. Reihenfolge = relative Priorität. Jede Aufgabe hängt an einem Strang.
@@ -18,12 +25,12 @@ npm run build   # statische App in ./build (PWA, offline-fähig)
 - **Stapel**: Score aus Strang-Rang, Wichtig (1–5), Dringend (Fälligkeit), Dauer (Quick Wins), Eat-the-Frog (morgens große wichtige Sachen), Flow (gleicher Strang) & Batch (gleiche Tags), Alter. „ⓘ“ auf der Karte zeigt warum.
 - **Start/Stopp**: Timer pro Aufgabe → Fokus + echte Zeiten → bessere Schätzungen.
 - **Tagesuhr**: 24h-Kreis mit Blockern, Plan ab jetzt und dem, was wirklich passiert ist.
-- **Eisenhower-Matrix** (Stapel → Matrix): Sofort erledigen · Terminieren · Delegieren · Ignorieren – mit passender Aktion je Feld.
+- **Eisenhower-Matrix** (Menü → Matrix): Sofort erledigen · Terminieren · Delegieren · Ignorieren – mit passender Aktion je Feld.
 - **Ziele (SMART)** pro Strang, inkl. Stretch-Ziel. Das oberste Ziel steht über dem Stapel, jede Karte erinnert „Wofür“. „Ziel → Plan“ macht aus Schritten Aufgaben.
 
 ## Als App installieren
 
-- Web-App (PWA): im Browser öffnen → Menü (Logo oben links) → **App installieren**, bzw. iOS Safari: Teilen → Zum Home-Bildschirm.
+- Web-App (PWA): im Browser öffnen → Menü (Logo oben links) → **App installieren** (oder Einstellungen), bzw. iOS Safari: Teilen → Zum Home-Bildschirm.
 - Offline-fähig, eigenes Icon, Shortcuts per Long-Press aufs Icon: „Neue Aufgabe“, „Heute“.
 - Hosting: `.github/workflows/deploy.yml` baut bei Push auf `main` und veröffentlicht auf GitHub Pages (einmalig: Repo → Settings → Pages → Source: *GitHub Actions*).
 
@@ -32,7 +39,7 @@ npm run build   # statische App in ./build (PWA, offline-fähig)
 `Angebot an Tom #mail !4 30m morgen 14:00 +Arbeit`
 `#tag` · `!1–!5` Wichtigkeit · `15m` / `1.5h` / `1h30` · `heute` / `morgen` / `übermorgen` / `mo`–`so` · `14:00` · `+Strang`
 
-Tastatur: `N` neu · `/` Suche · `Leertaste` Timer · `M` Matrix · `1–4` Tabs · `Esc` Panel zu
+Tastatur: `N` neu · `/` Suche · `Leertaste` Timer · `M` Matrix · `H` Heute · `S` Stränge · `R` Rückblick · `Esc` zurück
 
 ## Feature-Status (aus der Ideenliste)
 
@@ -70,3 +77,25 @@ Tastatur: `N` neu · `/` Suche · `Leertaste` Timer · `M` Matrix · `1–4` Tab
 | Sync zwischen Geräten (PouchDB/CouchDB) | ⏳ offen – aktuell nur lokal + Backup |
 | Homescreen-Widget | ◐ PWA-Shortcuts statt Widget; echtes Widget braucht native App (Capacitor um `./build`) |
 | Cordova/Angular-Setup, Excel-Prototyp, Scribble | ➖ entfällt – ersetzt durch SvelteKit-PWA |
+
+## Vergleich & nächste Schritte
+
+| Produkt | Stärke | Was StackDO daraus lernt |
+|---|---|---|
+| Todoist / TickTick | Natürliche Eingabe, Sync überall, Erinnerungen | Sync + Push-Erinnerungen fehlen noch; Eingabe um „jeden Mo“, „in 3 Tagen“ erweitern |
+| Things 3 | Ruhiges, freundliches Design, „Heute“ vs. „Irgendwann“ | Reduziertes UI ✅; „Irgendwann“-Ablage für Ideen ohne Druck |
+| Sorted³ / Structured | Aufgaben + Termine auf einer Zeitleiste | Tagesuhr ✅; Kalender-Import (Termine als Blocker) |
+| Motion / Reclaim | Plant automatisch um Termine herum | Tagesplan ✅; Termine aus Kalender einbeziehen |
+| Sunsama | Tägliches Planungs- & Abschluss-Ritual | Morgen-Check („Was muss heute rein?“) + Feierabend-Rückblick |
+| Llama Life | Eine Aufgabe, ein Timer – Fokus | Kernidee ✅; Fokus-Vollbild + optional Pomodoro |
+| Tiimo | Visuell, freundlich, ADHS-tauglich | Sanfte Hinweise statt Druck, Vorlesen/Haptik |
+
+**Priorisiert (Wirkung × Aufwand):**
+1. **Erinnerungen** (Web Push / lokale Notifications) für Fälliges, Gewohnheiten, Timer-Ende
+2. **Morgen-Check & Feierabend** (Sunsama): 1 Minute planen, abends abhaken & verschieben
+3. **Sync zwischen Geräten** (PouchDB ↔ CouchDB oder Supabase), Konto optional
+4. **Kalender-Import** (ICS-URL / Google): Termine werden Blocker auf der Tagesuhr
+5. **Unteraufgaben / Checkliste** in einer Aufgabe (Babysteps ohne neue Karten)
+6. **Fokus-Modus**: Karte im Vollbild, Timer groß, alles andere aus
+7. **Irgendwann-Liste** für Ideen, die den Stapel nicht verstopfen
+8. **Native Hülle (Capacitor)** für echtes Widget, Haptik, App-Stores

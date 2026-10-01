@@ -1,38 +1,40 @@
 /* StackDO design tokens.
-   Planning = calm blue/green. The one task you do next = warm, shiny, valuable. Badges: no round edges. */
+   Reduced & friendly: warm paper background, rounded type, one warm shiny card for the task you do now.
+   Planning colors stay calm (blue/green). Badges: no round edges. */
 :root {
-	--bg: #f2f2f5;
+	/* warm paper, soft ink – friendly, calm, reduced */
+	--bg: #f7f5f2;
 	--surface: #ffffff;
-	--surface-2: #f4f4f6;
-	--ink: #16181b;
-	--muted: #6b7078;
-	--line: #dcdde1;
-	--line-soft: #ececef;
-	--blue: #2271b1;
-	--green: #00a32a;
-	--red: #d63638;
-	--amber: #dba617;
-	--prime: linear-gradient(135deg, #ffb347 0%, #ff7a3d 55%, #f0533a 100%);
-	--prime-ink: #3b1400;
-	--prime-solid: #ff7a3d;
-	--shadow: 0 1px 2px rgba(20, 20, 30, 0.04), 0 6px 20px rgba(20, 20, 30, 0.05);
-	--radius: 14px;
-	--nav-h: 64px;
+	--surface-2: #f1eee9;
+	--ink: #23201c;
+	--muted: #8b857c;
+	--line: #e3dfd8;
+	--line-soft: #efebe5;
+	--blue: #3d7fc4;
+	--green: #2f9e5b;
+	--red: #d9534f;
+	--amber: #d9a21b;
+	--prime: linear-gradient(140deg, #ffd29a 0%, #ffad6b 45%, #ff7d55 100%);
+	--prime-ink: #3a1503;
+	--prime-solid: #ff8a50;
+	--shadow: 0 1px 2px rgba(60, 40, 20, 0.04), 0 8px 24px rgba(60, 40, 20, 0.06);
+	--radius: 18px;
+	--font: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Quicksand', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 	color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		--bg: #15181b;
-		--surface: #1f2328;
-		--surface-2: #272c32;
-		--ink: #eceef0;
-		--muted: #9aa2ab;
-		--line: #353b42;
-		--line-soft: #2b3036;
-		--blue: #4f9ae0;
-		--green: #2fc25a;
-		--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
+		--bg: #191715;
+		--surface: #23201d;
+		--surface-2: #2c2925;
+		--ink: #f2eee8;
+		--muted: #a39c92;
+		--line: #3a3631;
+		--line-soft: #2f2b27;
+		--blue: #6ea6e0;
+		--green: #4cc27c;
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
 		color-scheme: dark;
 	}
 }
@@ -48,12 +50,7 @@ body {
 	margin: 0;
 	background: var(--bg);
 	color: var(--ink);
-	font-family:
-		system-ui,
-		-apple-system,
-		'Segoe UI',
-		Roboto,
-		sans-serif;
+	font-family: var(--font);
 	-webkit-font-smoothing: antialiased;
 	-webkit-tap-highlight-color: transparent;
 }

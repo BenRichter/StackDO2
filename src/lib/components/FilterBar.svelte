@@ -45,8 +45,8 @@
 		gap: 6px;
 		overflow-x: auto;
 		scrollbar-width: none;
-		padding: 2px 16px;
-		margin: 0 -16px;
+		padding: 2px 18px;
+		margin: 0 -18px;
 	}
 	.bar::-webkit-scrollbar {
 		display: none;

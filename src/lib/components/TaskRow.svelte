@@ -10,7 +10,7 @@
 
 	const thread = $derived(app.thread(task.threadId));
 	/** thread color, graded by importance: 1 = faint, 5 = full */
-	const tint = $derived(`${15 + task.importance * 17}%`);
+	const tint = $derived(`${task.importance * 9}%`);
 </script>
 
 <li class="row-item" class:later={!!reason} style:--c={thread?.color ?? 'var(--muted)'} style:--tint={tint}>

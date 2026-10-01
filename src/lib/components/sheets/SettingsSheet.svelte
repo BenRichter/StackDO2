@@ -38,7 +38,7 @@
 	}
 </script>
 
-<BottomSheet title="Menü">
+<BottomSheet title="Einstellungen">
 	<span class="label">App</span>
 	{#if standalone}
 		<p class="ok"><Icon name="check" size={16} /> Als App installiert – läuft auch offline.</p>
@@ -55,7 +55,7 @@
 	<div class="row">
 		<input class="field sm" type="number" min="1" max="16" bind:value={app.settings.workHours} /> Stunden
 	</div>
-	<p class="hint">Zeitfenster pro Strang (z.B. Arbeit 8–17 Uhr) stellst du im Tab „Stränge“ ein.</p>
+	<p class="hint">Zeitfenster pro Strang (z.B. Arbeit 8–17 Uhr) stellst du unter Menü → „Stränge & Ziele“ ein.</p>
 
 	<span class="label">Wachzeit (Tagesuhr)</span>
 	<div class="row nowrap">
@@ -86,7 +86,7 @@
 	<p class="hint">Alles bleibt lokal auf diesem Gerät (offline). Kein Konto, kein Server.</p>
 
 	<div class="row danger-zone">
-		<button class="btn" onclick={() => { app.restartTutorial(); ui.close(); ui.tab = 'stack'; }}>Tutorial neu starten</button>
+		<button class="btn" onclick={() => { app.restartTutorial(); ui.close(); ui.go('stack'); }}>Tutorial neu starten</button>
 		<button class="btn danger" onclick={() => confirm('Wirklich alles löschen?') && (app.reset(), ui.close())}>Alles zurücksetzen</button>
 	</div>
 </BottomSheet>

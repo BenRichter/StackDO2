@@ -1,4 +1,13 @@
-export type Tab = 'stack' | 'day' | 'threads' | 'stats';
+/** Views. The stack is home; everything else lives behind the menu. */
+export type View = 'stack' | 'matrix' | 'day' | 'threads' | 'stats';
+
+export const VIEW_TITLES: Record<View, string> = {
+	stack: 'Stapel',
+	matrix: 'Matrix',
+	day: 'Heute',
+	threads: 'Stränge',
+	stats: 'Rückblick'
+};
 
 export type Sheet =
 	| { type: 'task'; id?: string; threadId?: string }
@@ -8,8 +17,8 @@ export type Sheet =
 	| { type: 'settings' };
 
 class UiStore {
-	tab = $state<Tab>('stack');
-	stackMode = $state<'stack' | 'matrix'>('stack');
+	view = $state<View>('stack');
+	menuOpen = $state(false);
 	/** Chrome/Android install prompt, captured from `beforeinstallprompt` */
 	installPrompt = $state<(Event & { prompt: () => Promise<void> }) | null>(null);
 	sheet = $state<Sheet | null>(null);
@@ -18,7 +27,14 @@ class UiStore {
 	toast = $state<{ text: string; action?: { label: string; run: () => void } } | null>(null);
 	#toastTimer: ReturnType<typeof setTimeout> | undefined;
 
+	go(view: View) {
+		this.view = view;
+		this.menuOpen = false;
+		if (typeof window !== 'undefined') window.scrollTo({ top: 0 });
+	}
+
 	open(sheet: Sheet) {
+		this.menuOpen = false;
 		this.sheet = sheet;
 	}
 

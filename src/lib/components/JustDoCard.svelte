@@ -10,21 +10,58 @@
 
 	let { item }: { item: ScoredTask } = $props();
 
-	// Done effects – short and crisp, not a circus
-	const FX = ['glow', 'squash', 'burn', 'hammer'] as const;
-	let fx = $state<(typeof FX)[number] | null>(null);
-
-	function done() {
-		if (fx) return;
-		if (!app.settings.animations) return finishTask(task.id);
-		fx = FX[Math.floor(Math.random() * FX.length)];
-		setTimeout(() => finishTask(task.id), 520);
-	}
-
 	const task = $derived(item.task);
 	const running = $derived(app.timer?.taskId === task.id);
 	const thread = $derived(app.thread(task.threadId));
 
+	// Done effects – short and crisp, not a circus
+	const FX = ['glow', 'squash', 'burn', 'hammer'] as const;
+	let fx = $state<(typeof FX)[number] | 'fly' | null>(null);
+
+	function done(viaSwipe = false) {
+		if (fx) return;
+		if (!app.settings.animations && !viaSwipe) return finishTask(task.id);
+		fx = viaSwipe ? 'fly' : FX[Math.floor(Math.random() * FX.length)];
+		setTimeout(() => finishTask(task.id), viaSwipe ? 260 : 520);
+	}
+
+	// ── swipe: right = done, left = later ──────────────────
+	const THRESHOLD = 110;
+	let dx = $state(0);
+	let dragging = $state(false);
+	let startX = 0;
+	let startY = 0;
+	let horizontal: boolean | null = null;
+
+	function down(e: PointerEvent) {
+		if ((e.target as HTMLElement).closest('button, a, input')) return;
+		dragging = true;
+		horizontal = null;
+		startX = e.clientX;
+		startY = e.clientY;
+	}
+	function move(e: PointerEvent) {
+		if (!dragging) return;
+		const x = e.clientX - startX;
+		const y = e.clientY - startY;
+		if (horizontal === null && Math.abs(x) + Math.abs(y) > 8) {
+			horizontal = Math.abs(x) > Math.abs(y);
+			if (horizontal) (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		}
+		if (horizontal) dx = x;
+	}
+	function up() {
+		if (!dragging) return;
+		dragging = false;
+		if (dx > THRESHOLD) {
+			done(true);
+			return;
+		}
+		if (dx < -THRESHOLD) ui.open({ type: 'push', id: task.id });
+		dx = 0;
+	}
+
+	// ── timer ──────────────────────────────────────────────
 	let tick = $state(Date.now());
 	let showWhy = $state(false);
 	let showNotes = $state(false);
@@ -42,6 +79,7 @@
 	const estimateMs = $derived(task.estimate * 60000);
 	const progress = $derived(Math.min(1, elapsedMs / estimateMs));
 	const over = $derived(elapsedMs > estimateMs);
+	const started = $derived(elapsedMs > 0);
 
 	// gentle buzz once when the estimate runs out
 	let buzzed = $state<string | null>(null);
@@ -53,105 +91,361 @@
 	});
 </script>
 
-<article class="card fx-{fx}" class:running class:lefty={app.settings.leftHanded} style:--c={thread?.color}>
-	<div class="shine" aria-hidden="true"></div>
-	<header>
-		<span class="kicker">
-			{#if running}Läuft{:else}Jetzt dran{/if}
-			{#if thread}<span class="dot"></span>{thread.name}{/if}
-		</span>
-		<button class="icon-btn" onclick={() => (showWhy = !showWhy)} aria-label="Warum diese Aufgabe?" aria-expanded={showWhy}>
-			<Icon name="info" size={18} />
-		</button>
-	</header>
+<div class="swipe-zone">
+	<span class="hint left" style:opacity={Math.min(1, dx / THRESHOLD)}><Icon name="check" size={22} /> Erledigt</span>
+	<span class="hint right" style:opacity={Math.min(1, -dx / THRESHOLD)}>Später <Icon name="push" size={22} /></span>
 
-	<h2>{task.title}</h2>
-	<TaskMeta {task} showThread={false} />
-	{#if thread?.goal?.text}
-		<p class="why-goal"><Icon name="target" size={14} /> Wofür: {thread.goal.text}</p>
-	{/if}
-
-	{#if showWhy}
-		<div class="why">
-			<strong>Score {item.score}</strong>
-			{#each item.parts as p (p.label)}
-				<span>{p.label} {p.value > 0 ? '+' : ''}{p.value}</span>
-			{/each}
-		</div>
-	{/if}
-
-	{#if task.notes}
-		<button class="notes" class:open={showNotes} onclick={() => (showNotes = !showNotes)}>{task.notes}</button>
-	{/if}
-
-	{#if task.estimate > BABYSTEP_LIMIT}
-		<div class="babysteps">
-			<Icon name="alert" size={16} /> Zu groß für einen Schritt. Babysteps!
-			<button class="btn ghost" onclick={() => app.split(task.id)}><Icon name="scissors" size={16} /> Aufteilen</button>
-		</div>
-	{/if}
-
-	<div class="timer" aria-live="off">
-		<div class="bar"><div class="fill" class:over style:width="{progress * 100}%"></div></div>
-		<div class="times">
-			<span class="clock">{fmtClock(elapsedMs)}</span>
-			<span class="est">
-				{#if over}+{fmtClock(elapsedMs - estimateMs)} über Schätzung{:else}noch {fmtClock(estimateMs - elapsedMs)} von {fmtDuration(task.estimate)}{/if}
+	<article
+		class="card fx-{fx}"
+		class:running
+		class:dragging
+		class:lefty={app.settings.leftHanded}
+		style:--c={thread?.color}
+		style:transform={dx ? `translateX(${dx}px) rotate(${dx / 25}deg)` : undefined}
+		onpointerdown={down}
+		onpointermove={move}
+		onpointerup={up}
+		onpointercancel={up}
+	>
+		<div class="shine" aria-hidden="true"></div>
+		<header>
+			<span class="kicker">
+				{#if thread}<span class="dot"></span>{thread.name}{/if}
+				{#if running}<span class="live">läuft</span>{/if}
 			</span>
-		</div>
-	</div>
+			<button class="why-btn" onclick={() => (showWhy = !showWhy)} aria-label="Warum diese Aufgabe?" aria-expanded={showWhy}>
+				<Icon name="info" size={18} />
+			</button>
+		</header>
 
-	<div class="actions">
-		<button class="start" onclick={() => app.toggle(task.id)} aria-pressed={running}>
-			<Icon name={running ? 'pause' : 'play'} size={22} fill />
-			{running ? 'Pause' : 'Start'}
-		</button>
-		<button class="done" onclick={done}>
-			<Icon name="check" size={22} /> Erledigt
-		</button>
-	</div>
-	<div class="secondary">
-		<button class="btn ghost" onclick={() => ui.open({ type: 'push', id: task.id })}>
-			<Icon name="push" size={16} /> Später
-		</button>
-		<button class="btn ghost" onclick={() => ui.open({ type: 'task', id: task.id })}>
-			<Icon name="edit" size={16} /> Bearbeiten
-		</button>
-	</div>
-</article>
+		<h2>{task.title}</h2>
+		<TaskMeta {task} showThread={false} />
+
+		{#if showWhy}
+			<div class="why">
+				{#each item.parts as p (p.label)}
+					<span>{p.label} <b>{p.value > 0 ? '+' : ''}{p.value}</b></span>
+				{/each}
+			</div>
+		{/if}
+
+		{#if thread?.goal?.text}
+			<p class="goal"><Icon name="target" size={14} /> {thread.goal.text}</p>
+		{/if}
+
+		{#if task.notes}
+			<button class="notes" class:open={showNotes} onclick={() => (showNotes = !showNotes)}>{task.notes}</button>
+		{/if}
+
+		{#if task.estimate > BABYSTEP_LIMIT}
+			<button class="babysteps" onclick={() => app.split(task.id)}>
+				<Icon name="scissors" size={15} /> Zu groß – in Babysteps aufteilen
+			</button>
+		{/if}
+
+		{#if started || running}
+			<div class="timer" aria-live="off">
+				<span class="clock">{fmtClock(elapsedMs)}</span>
+				<span class="est">{#if over}+{fmtClock(elapsedMs - estimateMs)} drüber{:else}noch {fmtClock(estimateMs - elapsedMs)}{/if}</span>
+				<div class="bar"><div class="fill" class:over style:width="{progress * 100}%"></div></div>
+			</div>
+		{/if}
+
+		<div class="actions">
+			<button class="start" onclick={() => app.toggle(task.id)} aria-pressed={running}>
+				<Icon name={running ? 'pause' : 'play'} size={20} fill />
+				{running ? 'Pause' : started ? 'Weiter' : `Start · ${fmtDuration(task.estimate)}`}
+			</button>
+			<button class="done" onclick={() => done()} aria-label="Erledigt">
+				<Icon name="check" size={24} />
+			</button>
+		</div>
+
+		<footer>
+			<button onclick={() => ui.open({ type: 'push', id: task.id })}>Später</button>
+			<span class="swipe-tip" aria-hidden="true">← wischen →</span>
+			<button onclick={() => ui.open({ type: 'task', id: task.id })}>Bearbeiten</button>
+		</footer>
+	</article>
+</div>
 
 <style>
-	.card {
+	.swipe-zone {
 		position: relative;
-		overflow: hidden;
-		padding: 16px 18px 12px;
-		border-radius: 14px;
-		background: var(--prime);
-		color: var(--prime-ink);
-		box-shadow:
-			0 10px 30px -8px rgba(240, 83, 58, 0.55),
-			inset 0 1px 0 rgba(255, 255, 255, 0.5);
 	}
-	.why-goal {
+	.hint {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		margin: 10px 0 0;
+		font-weight: 800;
+		pointer-events: none;
+	}
+	.hint.left {
+		left: 8px;
+		color: var(--green);
+	}
+	.hint.right {
+		right: 8px;
+		color: var(--muted);
+	}
+	.card {
+		position: relative;
+		overflow: hidden;
+		padding: 18px 20px 10px;
+		border-radius: 24px;
+		background: var(--prime);
+		color: var(--prime-ink);
+		box-shadow:
+			0 18px 40px -16px rgba(255, 110, 60, 0.55),
+			inset 0 1px 0 rgba(255, 255, 255, 0.6);
+		touch-action: pan-y;
+		user-select: none;
+		transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+	}
+	.card.dragging {
+		transition: none;
+	}
+	.shine {
+		position: absolute;
+		inset: -40% -20% auto auto;
+		width: 70%;
+		height: 120%;
+		background: radial-gradient(closest-side, rgba(255, 255, 255, 0.5), transparent);
+		pointer-events: none;
+		transform: rotate(20deg);
+	}
+	.card.running .shine {
+		animation: shimmer 3.5s ease-in-out infinite;
+	}
+	@keyframes shimmer {
+		50% {
+			transform: translateX(-60%) rotate(20deg);
+			opacity: 0.6;
+		}
+	}
+	header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		min-height: 28px;
+	}
+	.kicker {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		font-size: 0.82rem;
+		font-weight: 700;
+	}
+	.dot {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: var(--c, #fff);
+		box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+	}
+	.live {
+		padding: 1px 7px;
+		border-radius: 2px;
+		background: var(--prime-ink);
+		color: #fff;
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+	.why-btn {
+		display: grid;
+		place-items: center;
+		width: 32px;
+		height: 32px;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: var(--prime-ink);
+		opacity: 0.55;
+	}
+	.why-btn:hover {
+		opacity: 1;
+		background: rgba(255, 255, 255, 0.3);
+	}
+	h2 {
+		margin: 8px 0 8px;
+		font-size: 1.6rem;
+		line-height: 1.15;
+		font-weight: 800;
+		letter-spacing: -0.015em;
+		overflow-wrap: anywhere;
+	}
+	.card :global(.meta) {
+		color: var(--prime-ink);
+		opacity: 0.75;
+	}
+	.why {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px 12px;
+		margin-top: 10px;
+		padding: 8px 10px;
+		font-size: 0.78rem;
+		background: rgba(255, 255, 255, 0.4);
+		border-radius: 10px;
+	}
+	.goal {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin: 12px 0 0;
 		font-size: 0.85rem;
 		font-weight: 600;
+		opacity: 0.8;
+	}
+	.notes {
+		display: -webkit-box;
+		width: 100%;
+		margin-top: 10px;
+		padding: 0;
+		border: 0;
+		background: none;
+		text-align: left;
+		font-size: 0.88rem;
+		line-height: 1.45;
+		white-space: pre-wrap;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
 		opacity: 0.85;
 	}
+	.notes.open {
+		display: block;
+	}
+	.babysteps {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 12px;
+		padding: 6px 10px;
+		border: 0;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.5);
+		color: var(--prime-ink);
+		font-size: 0.82rem;
+		font-weight: 700;
+	}
+	.timer {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		align-items: baseline;
+		gap: 4px 10px;
+		margin-top: 14px;
+	}
+	.clock {
+		font-size: 1.9rem;
+		font-weight: 800;
+		font-variant-numeric: tabular-nums;
+	}
+	.est {
+		font-size: 0.8rem;
+		font-weight: 600;
+		opacity: 0.8;
+	}
+	.bar {
+		grid-column: 1 / -1;
+		height: 4px;
+		background: rgba(255, 255, 255, 0.45);
+		border-radius: 2px;
+		overflow: hidden;
+	}
+	.fill {
+		height: 100%;
+		background: var(--prime-ink);
+		transition: width 1s linear;
+	}
+	.fill.over {
+		background: #a01b00;
+	}
+	.actions {
+		display: grid;
+		grid-template-columns: 1fr 60px;
+		gap: 10px;
+		margin-top: 16px;
+	}
+	.lefty .actions {
+		grid-template-columns: 60px 1fr;
+	}
+	.lefty .done {
+		order: -1;
+	}
+	.actions button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		min-height: 56px;
+		border: 0;
+		border-radius: 16px;
+		font-size: 1.05rem;
+		font-weight: 800;
+		transition: transform 0.1s;
+	}
+	.actions button:active {
+		transform: scale(0.96);
+	}
+	.start {
+		background: rgba(255, 255, 255, 0.92);
+		color: var(--prime-ink);
+	}
+	.start[aria-pressed='true'] {
+		background: rgba(255, 255, 255, 0.55);
+	}
+	.done {
+		background: var(--prime-ink);
+		color: #fff;
+	}
+	footer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: 6px;
+	}
+	.lefty footer {
+		flex-direction: row-reverse;
+	}
+	footer button {
+		padding: 8px 4px;
+		border: 0;
+		background: none;
+		color: var(--prime-ink);
+		font-size: 0.85rem;
+		font-weight: 700;
+		opacity: 0.7;
+	}
+	footer button:hover {
+		opacity: 1;
+	}
+	.swipe-tip {
+		font-size: 0.72rem;
+		opacity: 0.45;
+	}
 	/* done effects */
+	.fx-fly {
+		transition: transform 0.26s ease-in, opacity 0.26s ease-in !important;
+		transform: translateX(120%) rotate(12deg) !important;
+		opacity: 0;
+	}
 	.fx-glow {
 		animation: glow 0.52s ease-out forwards;
 	}
 	@keyframes glow {
 		40% {
-			box-shadow: 0 0 0 6px #fff, 0 0 60px 20px #ffb347;
-			filter: brightness(1.25);
+			box-shadow:
+				0 0 0 6px #fff,
+				0 0 60px 20px #ffc58a;
+			filter: brightness(1.2);
 		}
 		100% {
-			box-shadow: 0 0 0 0 #fff, 0 0 90px 40px transparent;
 			opacity: 0;
 			transform: scale(1.04);
 		}
@@ -173,9 +467,6 @@
 		animation: burn 0.52s ease-in forwards;
 	}
 	@keyframes burn {
-		0% {
-			filter: none;
-		}
 		50% {
 			filter: sepia(1) saturate(4) hue-rotate(-20deg) brightness(1.2);
 		}
@@ -183,208 +474,21 @@
 			filter: sepia(1) saturate(6) brightness(0.2) blur(4px);
 			opacity: 0;
 			transform: translateY(-20px) scale(0.96);
-			clip-path: inset(0 0 100% 0);
 		}
 	}
 	.fx-hammer {
 		animation: hammer 0.52s cubic-bezier(0.3, 1.6, 0.6, 1) forwards;
 	}
 	@keyframes hammer {
-		0% {
-			transform: rotate(0);
-		}
 		25% {
 			transform: rotate(-3deg) translateY(-8px);
 		}
 		45% {
-			transform: rotate(0) translateY(6px) scaleY(0.94);
+			transform: translateY(6px) scaleY(0.94);
 		}
 		100% {
 			transform: translateY(120px) rotate(4deg);
 			opacity: 0;
 		}
-	}
-	.shine {
-		position: absolute;
-		inset: -40% -20% auto auto;
-		width: 70%;
-		height: 120%;
-		background: radial-gradient(closest-side, rgba(255, 255, 255, 0.45), transparent);
-		pointer-events: none;
-		transform: rotate(20deg);
-	}
-	.card.running .shine {
-		animation: shimmer 3.5s ease-in-out infinite;
-	}
-	@keyframes shimmer {
-		50% {
-			transform: translateX(-60%) rotate(20deg);
-			opacity: 0.6;
-		}
-	}
-	header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-	header .icon-btn {
-		color: var(--prime-ink);
-		opacity: 0.7;
-	}
-	header .icon-btn:hover {
-		background: rgba(255, 255, 255, 0.25);
-		color: var(--prime-ink);
-	}
-	.kicker {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		font-size: 0.72rem;
-		font-weight: 800;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-	}
-	.dot {
-		width: 10px;
-		height: 10px;
-		border-radius: 50%;
-		background: var(--c, #fff);
-		box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
-		margin-left: 4px;
-	}
-	h2 {
-		margin: 6px 0 10px;
-		font-size: 1.45rem;
-		line-height: 1.2;
-		font-weight: 800;
-		letter-spacing: -0.01em;
-		overflow-wrap: anywhere;
-	}
-	.card :global(.badge) {
-		background: rgba(255, 255, 255, 0.55);
-		color: var(--prime-ink);
-	}
-	.why {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 4px 10px;
-		margin-top: 10px;
-		font-size: 0.78rem;
-		padding: 8px 10px;
-		background: rgba(255, 255, 255, 0.35);
-		border-radius: 6px;
-	}
-	.notes {
-		display: block;
-		width: 100%;
-		margin-top: 10px;
-		padding: 0;
-		border: 0;
-		background: none;
-		text-align: left;
-		font-size: 0.88rem;
-		line-height: 1.4;
-		white-space: pre-wrap;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-	.notes.open {
-		display: block;
-	}
-	.babysteps {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin-top: 10px;
-		font-size: 0.85rem;
-		font-weight: 600;
-	}
-	.babysteps .btn {
-		margin-left: auto;
-		color: var(--prime-ink);
-		padding: 6px 8px;
-	}
-	.timer {
-		margin-top: 14px;
-	}
-	.bar {
-		height: 6px;
-		background: rgba(255, 255, 255, 0.4);
-		border-radius: 3px;
-		overflow: hidden;
-	}
-	.fill {
-		height: 100%;
-		background: var(--prime-ink);
-		transition: width 1s linear;
-	}
-	.fill.over {
-		background: #8b0000;
-	}
-	.times {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		margin-top: 6px;
-	}
-	.clock {
-		font-size: 1.6rem;
-		font-weight: 800;
-		font-variant-numeric: tabular-nums;
-	}
-	.est {
-		font-size: 0.78rem;
-		font-weight: 600;
-		opacity: 0.85;
-	}
-	.actions {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 10px;
-		margin-top: 12px;
-	}
-	.lefty .actions {
-		direction: rtl;
-	}
-	.actions button {
-		direction: ltr;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-		min-height: 54px;
-		border: 0;
-		border-radius: 10px;
-		font-size: 1.05rem;
-		font-weight: 800;
-	}
-	.start {
-		background: rgba(255, 255, 255, 0.9);
-		color: var(--prime-ink);
-	}
-	.start[aria-pressed='true'] {
-		background: rgba(255, 255, 255, 0.55);
-	}
-	.done {
-		background: var(--prime-ink);
-		color: #fff;
-	}
-	.actions button:active {
-		transform: scale(0.97);
-	}
-	.secondary {
-		display: flex;
-		justify-content: space-between;
-		margin-top: 6px;
-	}
-	.lefty .secondary {
-		flex-direction: row-reverse;
-	}
-	.secondary .btn {
-		color: var(--prime-ink);
-		padding: 8px 6px;
 	}
 </style>
