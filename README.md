@@ -34,12 +34,25 @@ npm run build   # statische App in ./build (PWA, offline-fähig)
 - Offline-fähig, eigenes Icon, Shortcuts per Long-Press aufs Icon: „Neue Aufgabe“, „Heute“.
 - Hosting: `.github/workflows/deploy.yml` baut bei Push auf `main` und veröffentlicht auf GitHub Pages (einmalig: Repo → Settings → Pages → Source: *GitHub Actions*).
 
-## Schnell-Eingabe
+## Schnell-Eingabe (natürliche Sprache)
 
-`Angebot an Tom #mail !4 30m morgen 14:00 +Arbeit`
-`#tag` · `!1–!5` Wichtigkeit · `15m` / `1.5h` / `1h30` · `heute` / `morgen` / `übermorgen` / `mo`–`so` · `14:00` · `+Strang`
+`Angebot an Tom nächsten Freitag 14 Uhr 30 min #mail !4 +Arbeit`
 
-Tastatur: `N` neu · `/` Suche · `Leertaste` Timer · `M` Matrix · `H` Heute · `S` Stränge · `R` Rückblick · `Esc` zurück
+| Was | Beispiele |
+|---|---|
+| Datum | `heute` · `morgen` · `übermorgen` · `Freitag` / `am Fr` · `bis morgen` · `nächste Woche` · `nächsten Mo` · `nächsten Monat` · `in 3 Tagen` · `in zwei Wochen` · `am 12.10.` · `15.11.2027` |
+| Uhrzeit | `14 Uhr` · `um 9` · `um 14:30` · `14:30` |
+| Dauer | `30 min` · `2 Std` · `1,5 Stunden` · `halbe Stunde` · `30m` · `1h30` |
+| Wiederholung | `jeden Tag` · `täglich` · `jeden Mo` · `jeden Werktag` · `jede Woche` · `jeden Monat` |
+| Sonstiges | `#tag` · `!1`–`!5` Wichtigkeit · `+Strang` · `irgendwann` (→ Inbox) |
+
+„so“ und „do“ zählen nur mit `am`/`bis`/`jeden` als Wochentag („Mach das so“ bleibt Text).
+
+## Irgendwann (Inbox)
+
+Menü → **Irgendwann**: Gedanken schnell parken, ohne den Stapel zu verstopfen. Später antippen, sortieren (Strang, Dauer, Datum) und mit einem Tipp auf den Stapel legen. Auch: Karte nach links wischen → „Irgendwann“.
+
+Tastatur: `N` neu · `/` Suche · `Leertaste` Timer · `I` Irgendwann · `M` Matrix · `H` Heute · `S` Stränge · `R` Rückblick · `Esc` zurück
 
 ## Feature-Status (aus der Ideenliste)
 
@@ -82,8 +95,8 @@ Tastatur: `N` neu · `/` Suche · `Leertaste` Timer · `M` Matrix · `H` Heute �
 
 | Produkt | Stärke | Was StackDO daraus lernt |
 |---|---|---|
-| Todoist / TickTick | Natürliche Eingabe, Sync überall, Erinnerungen | Sync + Push-Erinnerungen fehlen noch; Eingabe um „jeden Mo“, „in 3 Tagen“ erweitern |
-| Things 3 | Ruhiges, freundliches Design, „Heute“ vs. „Irgendwann“ | Reduziertes UI ✅; „Irgendwann“-Ablage für Ideen ohne Druck |
+| Todoist / TickTick | Natürliche Eingabe, Sync überall, Erinnerungen | Natürliche Eingabe ✅; Sync + Push-Erinnerungen fehlen noch |
+| Things 3 | Ruhiges, freundliches Design, „Heute“ vs. „Irgendwann“ | Reduziertes UI ✅; Irgendwann-Inbox ✅ |
 | Sorted³ / Structured | Aufgaben + Termine auf einer Zeitleiste | Tagesuhr ✅; Kalender-Import (Termine als Blocker) |
 | Motion / Reclaim | Plant automatisch um Termine herum | Tagesplan ✅; Termine aus Kalender einbeziehen |
 | Sunsama | Tägliches Planungs- & Abschluss-Ritual | Morgen-Check („Was muss heute rein?“) + Feierabend-Rückblick |
@@ -97,5 +110,5 @@ Tastatur: `N` neu · `/` Suche · `Leertaste` Timer · `M` Matrix · `H` Heute �
 4. **Kalender-Import** (ICS-URL / Google): Termine werden Blocker auf der Tagesuhr
 5. **Unteraufgaben / Checkliste** in einer Aufgabe (Babysteps ohne neue Karten)
 6. **Fokus-Modus**: Karte im Vollbild, Timer groß, alles andere aus
-7. **Irgendwann-Liste** für Ideen, die den Stapel nicht verstopfen
+7. ~~Irgendwann-Liste~~ ✅ · ~~Natürliche Eingabe~~ ✅
 8. **Native Hülle (Capacitor)** für echtes Widget, Haptik, App-Stores

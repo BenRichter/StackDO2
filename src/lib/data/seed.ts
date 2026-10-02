@@ -66,8 +66,8 @@ export function seedTasks(now = new Date()): Task[] {
 			4
 		),
 		base(
-			'Schnell-Eingabe probieren: „Mail an Tom #mail !4 15m morgen +Arbeit“',
-			'#tag · !1–!5 Wichtigkeit · 15m/1h Dauer · heute/morgen/mo–so · 14:00 · +Strang',
+			'Einfach schreiben: „Mail an Tom morgen 9 Uhr 15 min #mail“',
+			'Versteht: morgen · am Freitag · nächste Woche · in 3 Tagen · am 12.10. · um 14 Uhr · 30 min / 2 Std · jeden Mo / jeden Tag · irgendwann (→ Inbox) · #tag · !1–!5 · +Strang',
 			3,
 			4,
 			['write']
@@ -75,6 +75,12 @@ export function seedTasks(now = new Date()): Task[] {
 		base(
 			'Aufgabe zurückstellen (nach links wischen)',
 			'Geht gerade nicht? Nach links wischen oder „Später“: 1h, heute Abend, morgen, nächste Woche oder „warte auf …“. Der Verlauf bleibt erhalten.',
+			2,
+			3
+		),
+		base(
+			'Gedanken parken: Menü → Irgendwann',
+			'Nicht alles muss sofort auf den Stapel. Ideen und „irgendwann mal“ landen in der Inbox – sortieren, wenn Zeit ist.',
 			2,
 			3
 		),

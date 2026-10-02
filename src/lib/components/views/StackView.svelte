@@ -76,6 +76,12 @@
 		{/if}
 	{/if}
 
+	{#if app.somedayTasks.length && !filtered}
+		<button class="someday-link" onclick={() => ui.go('inbox')}>
+			<Icon name="inbox" size={15} /> Irgendwann · {app.somedayTasks.length} geparkt
+		</button>
+	{/if}
+
 	{#if filtered && top}
 		<button class="filter-pill" onclick={resetFilters}><Icon name="x" size={13} /> Filter aktiv</button>
 	{/if}
@@ -148,6 +154,18 @@
 		color: var(--muted);
 		font-size: 0.85rem;
 		font-weight: 700;
+	}
+	.someday-link {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		align-self: center;
+		padding: 6px 12px;
+		border: 0;
+		background: none;
+		color: var(--muted);
+		font-size: 0.82rem;
+		font-weight: 600;
 	}
 	.list {
 		list-style: none;

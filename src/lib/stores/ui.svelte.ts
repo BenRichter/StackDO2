@@ -1,8 +1,9 @@
 /** Views. The stack is home; everything else lives behind the menu. */
-export type View = 'stack' | 'matrix' | 'day' | 'threads' | 'stats';
+export type View = 'stack' | 'inbox' | 'matrix' | 'day' | 'threads' | 'stats';
 
 export const VIEW_TITLES: Record<View, string> = {
 	stack: 'Stapel',
+	inbox: 'Irgendwann',
 	matrix: 'Matrix',
 	day: 'Heute',
 	threads: 'Stränge',
@@ -10,7 +11,7 @@ export const VIEW_TITLES: Record<View, string> = {
 };
 
 export type Sheet =
-	| { type: 'task'; id?: string; threadId?: string }
+	| { type: 'task'; id?: string; threadId?: string; someday?: boolean }
 	| { type: 'push'; id: string }
 	| { type: 'done'; id: string }
 	| { type: 'thread'; id?: string }

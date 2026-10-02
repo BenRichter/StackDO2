@@ -27,12 +27,13 @@ npm run build    # static SPA into ./build (adapter-static, fallback index.html)
 - `src/lib/utils/` – **pure, tested logic** (keep it free of Svelte/DOM):
   - `scoring.ts` – availability (`unavailableReason`) + score (`scoreTask`) + `buildStack`; Eisenhower `quadrant()` (urgent = due ≤ tomorrow, important = importance ≥ 3); `goalPressure()` from thread goal deadlines. Score parts are shown to the user ("Warum?"), so every bonus needs a German label.
   - `plan.ts` – lays the stack onto today's 24h clock; blocker threads own their windows, other tasks fill free time.
-  - `parse.ts` – quick-add syntax (`#tag !4 30m morgen 14:00 +Strang`).
+  - `parse.ts` – natural-language quick add: phrase `RULES` first (jeden Mo, in 3 Tagen, nächste Woche, am 12.10., 14 Uhr, 30 min, irgendwann …), then single tokens (`#tag !4 30m morgen 14:00 +Strang`). Add new phrases as rules + tests in `parse.test.ts`.
   - `predict.ts` – realistic duration from similar history; estimation factor.
   - `recurrence.ts`, `ics.ts`, `time.ts` (always **local** dates via `dateKey()`, never `toISOString().split('T')`).
 - `src/lib/components/views/` – Stack (home), Matrix, Day (clock), Threads, Stats. `components/sheets/` – bottom panels (docked, **no dimming overlay** – deliberate design decision).
 - Navigation: **no bottom tabs**. The app opens on the stack; everything else is reached via `MenuDrawer.svelte` (logo top-left). Only one floating ＋ button. Keep it reduced – new features go behind the menu or into sheets, not onto the home screen.
 - `JustDoCard.svelte` – the top card; pointer swipe right = done, left = later.
+- "Irgendwann" (inbox): `Task.someday` – parked, never on the stack/plan/matrix (`buildStack`, `planDay` skip it). `InboxView` for quick capture + refine; `app.park()` / `app.activate()`.
 
 ## Conventions
 

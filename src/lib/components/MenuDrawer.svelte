@@ -8,6 +8,7 @@
 
 	const ITEMS: { view: View; label: string; sub: string; icon: IconName }[] = [
 		{ view: 'stack', label: 'Stapel', sub: 'Was jetzt dran ist', icon: 'stack' },
+		{ view: 'inbox', label: 'Irgendwann', sub: 'Inbox: geparkt, später sortieren', icon: 'inbox' },
 		{ view: 'matrix', label: 'Matrix', sub: 'Eisenhower: wichtig × dringend', icon: 'grid' },
 		{ view: 'day', label: 'Heute', sub: 'Tagesuhr & Plan', icon: 'clock' },
 		{ view: 'threads', label: 'Stränge & Ziele', sub: 'Lebensbereiche priorisieren', icon: 'threads' },
@@ -50,6 +51,7 @@
 				<button class="item" aria-current={ui.view === it.view ? 'page' : undefined} onclick={() => ui.go(it.view)}>
 					<Icon name={it.icon} />
 					<span><strong>{it.label}</strong><small>{it.sub}</small></span>
+					{#if it.view === 'inbox' && app.somedayTasks.length}<em class="count">{app.somedayTasks.length}</em>{/if}
 				</button>
 			</li>
 		{/each}
@@ -158,6 +160,18 @@
 	.item[aria-current='page'] {
 		background: var(--surface-2);
 		color: var(--prime-solid);
+	}
+	.count {
+		margin-left: auto;
+		min-width: 24px;
+		padding: 2px 8px;
+		border-radius: 999px;
+		background: var(--surface-2);
+		color: var(--ink);
+		font-style: normal;
+		font-size: 0.8rem;
+		font-weight: 700;
+		text-align: center;
 	}
 	.bottom {
 		margin-top: auto;

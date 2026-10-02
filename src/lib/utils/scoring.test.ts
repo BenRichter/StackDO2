@@ -140,3 +140,12 @@ describe('goals', () => {
 		expect(goalPressure(undefined, monday10)).toBe(0);
 	});
 });
+
+describe('irgendwann', () => {
+	it('parked tasks never reach the stack', () => {
+		const parked = task({ someday: true, importance: 5, dueDate: '2026-09-20' });
+		const { ready, later } = buildStack([parked], { now: monday10, threads });
+		expect(ready).toHaveLength(0);
+		expect(later).toHaveLength(0);
+	});
+});

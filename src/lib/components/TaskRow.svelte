@@ -6,7 +6,7 @@
 	import Icon from './Icon.svelte';
 	import TaskMeta from './TaskMeta.svelte';
 
-	let { task, reason, rank }: { task: Task; reason?: string; rank?: number } = $props();
+	let { task, reason, rank, parked = false }: { task: Task; reason?: string; rank?: number; parked?: boolean } = $props();
 
 	const thread = $derived(app.thread(task.threadId));
 	/** thread color, graded by importance: 1 = faint, 5 = full */
@@ -22,7 +22,11 @@
 		<TaskMeta {task} />
 		{#if reason}<span class="reason">{reason}</span>{/if}
 	</button>
-	{#if reason === 'zurückgestellt' || task.delegatedTo}
+	{#if parked}
+		<button class="icon-btn to-stack" onclick={() => app.activate(task.id)} aria-label="Auf den Stapel" title="Auf den Stapel">
+			<Icon name="stack" size={18} />
+		</button>
+	{:else if reason === 'zurückgestellt' || task.delegatedTo}
 		<button class="icon-btn" onclick={() => app.unpush(task.id)} aria-label="Wieder in den Stapel" title="Wieder in den Stapel">
 			<Icon name="up" />
 		</button>

@@ -150,7 +150,7 @@ export function buildStack(tasks: Task[], ctx: ScoreContext): { ready: ScoredTas
 	const ready: ScoredTask[] = [];
 	const later: Unavailable[] = [];
 	for (const task of tasks) {
-		if (task.completedAt) continue;
+		if (task.completedAt || task.someday) continue;
 		const thread = byId.get(task.threadId);
 		if (thread?.archived) continue;
 		const reason = ctx.runningTaskId === task.id ? null : unavailableReason(task, thread, ctx.now);

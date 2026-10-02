@@ -46,6 +46,16 @@
 					<strong>{o.label}</strong><span>{o.sub}</span>
 				</button>
 			{/each}
+			<button
+				class="opt"
+				onclick={() => {
+					app.park(id);
+					ui.close();
+					ui.notify('Ins Irgendwann gelegt', { label: 'Rückgängig', run: () => app.activate(id) });
+				}}
+			>
+				<strong>Irgendwann</strong><span>vom Stapel, in die Inbox</span>
+			</button>
 		</div>
 		<span class="label">Warte auf …</span>
 		<form

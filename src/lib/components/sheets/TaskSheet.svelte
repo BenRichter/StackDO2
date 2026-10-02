@@ -5,11 +5,11 @@
 	import { ui } from '$lib/stores/ui.svelte';
 	import { parseQuick } from '$lib/utils/parse';
 	import { estimationFactor, predictDuration } from '$lib/utils/predict';
-	import { addDays, dateKey, fmtDuration, loggedMinutes } from '$lib/utils/time';
+	import { addDays, dateKey, fmtDuration, loggedMinutes, relativeDue } from '$lib/utils/time';
 	import BottomSheet from './BottomSheet.svelte';
 	import Icon from '../Icon.svelte';
 
-	let { id, threadId: presetThread }: { id?: string; threadId?: string } = $props();
+	let { id, threadId: presetThread, someday: presetSomeday }: { id?: string; threadId?: string; someday?: boolean } = $props();
 
 	const existing = app.tasks.find((t) => t.id === id);
 	const isEdit = !!existing;
@@ -22,6 +22,8 @@
 	let dueDate = $state(existing?.dueDate ?? '');
 	let dueTime = $state(existing?.dueTime ?? '');
 	let recurrence = $state<Recurrence>(existing?.recurrence ?? 'none');
+	// svelte-ignore state_referenced_locally
+	let someday = $state(existing?.someday ?? presetSomeday ?? false);
 	let tags = $state<string[]>([...(existing?.tags ?? [])]);
 	let notes = $state(existing?.notes ?? '');
 	let customTag = $state('');
@@ -98,20 +100,24 @@
 			estimate: Math.max(1, p.estimate ?? estimate),
 			dueDate: (p.dueDate ?? dueDate) || undefined,
 			dueTime: (p.dueTime ?? dueTime) || undefined,
-			recurrence,
+			recurrence: p.recurrence ?? recurrence,
+			someday: p.someday || someday,
 			tags: [...new Set([...tags, ...p.tags])],
 			notes: notes.trim() || undefined
 		};
 		if (data.recurrence !== 'none' && !data.dueDate) data.dueDate = today;
 		if (existing) app.updateTask(existing.id, data);
 		else app.addTask(data);
-		if (close) ui.close();
+		if (close) {
+			ui.close();
+			if (data.someday && !existing?.someday) ui.notify('Ins Irgendwann gelegt – Menü → Irgendwann');
+		}
 		else {
 			title = '';
 			notes = '';
 			tags = [];
 			titleEl?.focus();
-			ui.notify('Hinzugefügt');
+			ui.notify(data.someday ? 'Ins Irgendwann gelegt' : 'Hinzugefügt');
 		}
 	}
 
@@ -151,7 +157,7 @@
 				onfocus={() => (focused = true)}
 				onblur={() => (focused = false)}
 				class="field title"
-				placeholder="Was ist zu tun?  #tag !4 30m morgen +Strang"
+				placeholder="Was ist zu tun? z.B. Mail an Tom morgen 9 Uhr #mail"
 				aria-label="Titel"
 				enterkeyhint="done"
 			/>
@@ -163,8 +169,10 @@
 				{#each parsed.tags as t (t)}<span class="badge">#{t}</span>{/each}
 				{#if parsed.importance}<span class="badge">!{parsed.importance}</span>{/if}
 				{#if parsed.estimate}<span class="badge">{fmtDuration(parsed.estimate)}</span>{/if}
-				{#if parsed.dueDate}<span class="badge">{parsed.dueDate}</span>{/if}
-				{#if parsed.dueTime}<span class="badge">{parsed.dueTime}</span>{/if}
+				{#if parsed.dueDate}<span class="badge">{relativeDue(parsed.dueDate)} · {new Date(parsed.dueDate).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}</span>{/if}
+				{#if parsed.dueTime}<span class="badge">{parsed.dueTime} Uhr</span>{/if}
+				{#if parsed.recurrence}<span class="badge"><Icon name="repeat" size={11} /> {RECURRENCE_LABELS[parsed.recurrence]}</span>{/if}
+				{#if parsed.someday}<span class="badge">Irgendwann</span>{/if}
 			</div>
 		{/if}
 
@@ -176,6 +184,11 @@
 				</button>
 			{/each}
 		</div>
+
+		<label class="park">
+			<input type="checkbox" bind:checked={someday} />
+			<span><b>Irgendwann</b> – erst mal parken, später sortieren. Nicht auf dem Stapel.</span>
+		</label>
 
 		<span class="label">Wichtig</span>
 		<div class="row">
@@ -210,7 +223,7 @@
 		<span class="label">Fällig</span>
 		<div class="row">
 			{#each dueChips as c (c.label)}
-				<button type="button" class="chip" aria-pressed={dueDate === c.value} onclick={() => (dueDate = c.value)}>{c.label}</button>
+				<button type="button" class="chip" aria-pressed={(parsed.dueDate ?? dueDate) === c.value} onclick={() => (dueDate = c.value)}>{c.label}</button>
 			{/each}
 		</div>
 		<div class="row two">
@@ -221,7 +234,7 @@
 		<span class="label">Wiederholen</span>
 		<div class="row">
 			{#each Object.entries(RECURRENCE_LABELS) as [k, label] (k)}
-				<button type="button" class="chip" aria-pressed={recurrence === k} onclick={() => (recurrence = k as Recurrence)}>{label}</button>
+				<button type="button" class="chip" aria-pressed={(parsed.recurrence ?? recurrence) === k} onclick={() => (recurrence = k as Recurrence)}>{label}</button>
 			{/each}
 		</div>
 		{#if recurrence !== 'none'}<p class="hint">Mit Uhrzeit = Gewohnheit: erscheint ab dieser Zeit im Stapel.</p>{/if}
@@ -268,7 +281,7 @@
 				<button type="button" class="btn" onclick={() => save(false)} disabled={!title.trim()}>+ Weitere</button>
 			{/if}
 			<button type="submit" class="btn primary" disabled={!title.trim()}>
-				<Icon name="check" size={18} />{isEdit ? 'Speichern' : 'Auf den Stapel'}
+				<Icon name="check" size={18} />{isEdit ? 'Speichern' : someday || parsed.someday ? 'Ins Irgendwann' : 'Auf den Stapel'}
 			</button>
 		</div>
 	</form>
@@ -323,6 +336,23 @@
 		height: 9px;
 		border-radius: 50%;
 		flex: none;
+	}
+	.park {
+		display: flex;
+		gap: 10px;
+		align-items: flex-start;
+		margin-top: 14px;
+		padding: 10px 12px;
+		border-radius: 12px;
+		background: var(--surface-2);
+		font-size: 0.85rem;
+		color: var(--muted);
+	}
+	.park b {
+		color: var(--ink);
+	}
+	.park input {
+		margin-top: 2px;
 	}
 	.parsed {
 		margin-top: 6px;

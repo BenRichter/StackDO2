@@ -10,6 +10,7 @@
 	import AnimationCanvas from '$lib/components/AnimationCanvas.svelte';
 	import StackView from '$lib/components/views/StackView.svelte';
 	import MatrixView from '$lib/components/views/MatrixView.svelte';
+	import InboxView from '$lib/components/views/InboxView.svelte';
 	import DayView from '$lib/components/views/DayView.svelte';
 	import ThreadsView from '$lib/components/views/ThreadsView.svelte';
 	import StatsView from '$lib/components/views/StatsView.svelte';
@@ -44,7 +45,7 @@
 		} else app.search = '';
 	}
 
-	const KEYS: Record<string, View> = { m: 'matrix', h: 'day', s: 'threads', r: 'stats' };
+	const KEYS: Record<string, View> = { i: 'inbox', m: 'matrix', h: 'day', s: 'threads', r: 'stats' };
 
 	function onKey(e: KeyboardEvent) {
 		const target = e.target as HTMLElement;
@@ -114,6 +115,8 @@
 	<main>
 		{#if ui.view === 'stack'}
 			<StackView />
+		{:else if ui.view === 'inbox'}
+			<InboxView />
 		{:else if ui.view === 'matrix'}
 			<MatrixView />
 		{:else if ui.view === 'day'}
@@ -127,7 +130,7 @@
 </div>
 
 {#if !ui.sheet}
-	<button class="fab" onclick={() => ui.open({ type: 'task' })} aria-label="Neue Aufgabe (N)" transition:fly={{ y: 80, duration: 180 }}>
+	<button class="fab" onclick={() => ui.open({ type: 'task', someday: ui.view === 'inbox' })} aria-label="Neue Aufgabe (N)" transition:fly={{ y: 80, duration: 180 }}>
 		<Icon name="plus" size={28} />
 	</button>
 {/if}
@@ -138,7 +141,7 @@
 
 {#if ui.sheet?.type === 'task'}
 	{#key ui.sheet.id ?? 'new'}
-		<TaskSheet id={ui.sheet.id} threadId={ui.sheet.threadId} />
+		<TaskSheet id={ui.sheet.id} threadId={ui.sheet.threadId} someday={ui.sheet.someday} />
 	{/key}
 {:else if ui.sheet?.type === 'push'}
 	<PushSheet id={ui.sheet.id} />

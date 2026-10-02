@@ -58,6 +58,8 @@ export interface Task {
 	pushedUntil?: string;
 	pushHistory: PushEntry[];
 	followUpOf?: string;
+	/** Parked in "Irgendwann" (inbox): captured, not refined yet – never on the stack */
+	someday?: boolean;
 	/** Eisenhower "delegieren": who is on it */
 	delegatedTo?: string;
 	tutorial?: boolean;

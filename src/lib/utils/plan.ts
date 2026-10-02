@@ -76,7 +76,7 @@ export function planDay(
 
 	const doable = tasks
 		.filter((t) => {
-			if (t.completedAt || threadById.get(t.threadId)?.archived) return false;
+			if (t.completedAt || t.someday || threadById.get(t.threadId)?.archived) return false;
 			if (t.pushedUntil && new Date(t.pushedUntil) >= endOfToday) return false;
 			if (t.recurrence !== 'none' && t.dueDate && t.dueDate > today) return false;
 			return true;

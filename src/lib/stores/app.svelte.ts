@@ -187,6 +187,11 @@ class AppStore {
 		return planDay(this.tasks, this.ctx, this.settings.dayStart, this.settings.dayEnd);
 	}
 
+	/** "Irgendwann": parked ideas, newest first */
+	get somedayTasks() {
+		return this.tasks.filter((t) => t.someday && !t.completedAt).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+	}
+
 	get doneToday() {
 		const today = dateKey(this.now);
 		return this.history.filter((h) => dateKey(new Date(h.completedAt)) === today);
@@ -363,6 +368,17 @@ class AppStore {
 
 	unpush(id: string) {
 		this.updateTask(id, { pushedUntil: undefined });
+	}
+
+	/** Park in "Irgendwann" – off the stack until refined. */
+	park(id: string) {
+		if (this.timer?.taskId === id) this.stop();
+		this.updateTask(id, { someday: true, pushedUntil: undefined });
+	}
+
+	/** Back from "Irgendwann" onto the stack. */
+	activate(id: string) {
+		this.updateTask(id, { someday: false });
 	}
 
 	/** Eisenhower "delegieren": hand it off, it comes back as a check-in after `days`. */
