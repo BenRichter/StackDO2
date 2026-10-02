@@ -1,0 +1,24 @@
+{
+	"id": "./",
+	"name": "StackDO – nicht wählen, machen",
+	"short_name": "=DO",
+	"description": "Nie wieder wählen, was als Nächstes kommt. Einfach machen.",
+	"start_url": "./",
+	"scope": "./",
+	"display": "standalone",
+	"orientation": "portrait",
+	"background_color": "#1d2327",
+	"theme_color": "#1d2327",
+	"lang": "de",
+	"categories": ["productivity"],
+	"icons": [
+		{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+		{ "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+		{ "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+		{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+	],
+	"shortcuts": [
+		{ "name": "Neue Aufgabe", "short_name": "Neu", "url": "./?new", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+		{ "name": "Heute (Tagesuhr)", "short_name": "Heute", "url": "./?view=day", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+	]
+}

@@ -1,12 +1,12 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-static';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
-		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
-		adapter: adapter()
+		// Static SPA build (./build) – deployable anywhere, wrappable with Capacitor for Android/iOS.
+		adapter: adapter({ fallback: 'index.html' }),
+		// BASE_PATH is set by the GitHub Pages workflow (e.g. /StackDO2); empty for local/root hosting
+		paths: { base: process.env.BASE_PATH ?? '', relative: true }
 	}
 };
 
