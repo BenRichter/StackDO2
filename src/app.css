@@ -1,0 +1,190 @@
+/* StackDO design tokens.
+   Reduced & friendly: warm paper background, rounded type, one warm shiny card for the task you do now.
+   Planning colors stay calm (blue/green). Badges: no round edges. */
+:root {
+	/* warm paper, soft ink – friendly, calm, reduced */
+	--bg: #f7f5f2;
+	--surface: #ffffff;
+	--surface-2: #f1eee9;
+	--ink: #23201c;
+	--muted: #8b857c;
+	--line: #e3dfd8;
+	--line-soft: #efebe5;
+	--blue: #3d7fc4;
+	--green: #2f9e5b;
+	--red: #d9534f;
+	--amber: #d9a21b;
+	--prime: linear-gradient(140deg, #ffd29a 0%, #ffad6b 45%, #ff7d55 100%);
+	--prime-ink: #3a1503;
+	--prime-solid: #ff8a50;
+	--shadow: 0 1px 2px rgba(60, 40, 20, 0.04), 0 8px 24px rgba(60, 40, 20, 0.06);
+	--radius: 18px;
+	--font: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Quicksand', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #191715;
+		--surface: #23201d;
+		--surface-2: #2c2925;
+		--ink: #f2eee8;
+		--muted: #a39c92;
+		--line: #3a3631;
+		--line-soft: #2f2b27;
+		--blue: #6ea6e0;
+		--green: #4cc27c;
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+		color-scheme: dark;
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: var(--font);
+	-webkit-font-smoothing: antialiased;
+	-webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+:focus-visible {
+	outline: 2px solid var(--blue);
+	outline-offset: 2px;
+}
+
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 2px 6px;
+	border-radius: 2px;
+	background: var(--surface-2);
+	color: var(--muted);
+	white-space: nowrap;
+}
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	border: 1px solid var(--line);
+	border-radius: 999px;
+	background: var(--surface);
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--muted);
+	white-space: nowrap;
+}
+
+.chip[aria-pressed='true'] {
+	background: var(--ink);
+	border-color: var(--ink);
+	color: var(--surface);
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 10px 14px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: var(--surface);
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.btn.primary {
+	background: var(--blue);
+	border-color: var(--blue);
+	color: #fff;
+}
+
+.btn.danger {
+	color: var(--red);
+}
+
+.btn.ghost {
+	border-color: transparent;
+	background: transparent;
+}
+
+.icon-btn {
+	display: inline-grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border: none;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--muted);
+}
+
+.icon-btn:hover {
+	background: var(--surface-2);
+	color: var(--ink);
+}
+
+.field {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: var(--surface);
+}
+
+.label {
+	display: block;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--muted);
+	margin: 14px 0 6px;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	* {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+	}
+}

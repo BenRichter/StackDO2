@@ -1,34 +1,20 @@
 <script lang="ts">
 	import { runAnimation, getRandomAnimation } from '$lib/utils/animations';
 
-	let {
-		active = false,
-		onDone
-	}: {
-		active?: boolean;
-		onDone?: () => void;
-	} = $props();
+	/** Increment `trigger` to fire one short celebration. Never blocks the UI. */
+	let { trigger = 0 }: { trigger?: number } = $props();
 
 	let canvas = $state<HTMLCanvasElement | null>(null);
 
 	$effect(() => {
-		if (active && canvas) {
-			const type = getRandomAnimation();
-			runAnimation(canvas, type);
-			// Vibration feedback (mobile)
-			if (navigator.vibrate) {
-				navigator.vibrate([100, 50, 100]);
-			}
-			setTimeout(() => {
-				if (onDone) onDone();
-			}, 2800);
+		if (trigger && canvas) {
+			runAnimation(canvas, getRandomAnimation());
+			navigator.vibrate?.([60, 40, 60]);
 		}
 	});
 </script>
 
-{#if active}
-	<canvas bind:this={canvas} class="animation-canvas"></canvas>
-{/if}
+<canvas bind:this={canvas} class="animation-canvas" aria-hidden="true"></canvas>
 
 <style>
 	.animation-canvas {

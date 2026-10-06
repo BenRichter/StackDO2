@@ -1,6 +1,6 @@
-import type { AnimationType } from '$lib/types';
+export type AnimationType = 'confetti' | 'explosion' | 'snippets' | 'fireworks' | 'stars';
 
-const COLORS = ['#EF476F', '#FFD166', '#06D6A0', '#118AB2', '#073B4C'];
+const COLORS = ['#ffb347', '#ff7a3d', '#f0533a', '#2271b1', '#00a32a', '#dba617'];
 
 export function getRandomAnimation(): AnimationType {
 	const types: AnimationType[] = ['confetti', 'explosion', 'snippets', 'fireworks', 'stars'];
